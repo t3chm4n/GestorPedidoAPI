@@ -1,0 +1,13 @@
+# Build e configurações locais
+bin/
+obj/
+.vscode/
+*.user
+*.suo
+
+# Arquivos de dependências
+*.lock
+node_modules/
+
+# Configurações locais específicas
+.env
