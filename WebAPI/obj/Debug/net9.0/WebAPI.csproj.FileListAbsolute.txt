@@ -14,6 +14,10 @@ C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.OpenApi.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Domain.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Infrastructure.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Domain.pdb
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Infrastructure.pdb
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.csproj.AssemblyReference.cache
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.GeneratedMSBuildEditorConfig.editorconfig
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.AssemblyInfoInputs.cache
@@ -21,6 +25,7 @@ C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.AssemblyInfo.cs
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.csproj.CoreCompileInputs.cache
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.MvcApplicationPartsAssemblyInfo.cs
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.MvcApplicationPartsAssemblyInfo.cache
+C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.sourcelink.json
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\scopedcss\bundle\WebAPI.styles.css
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\staticwebassets.build.json
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\staticwebassets.development.json
