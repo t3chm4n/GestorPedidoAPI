@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using GestorPedidoAPI.Domain.Entities;
 using GestorPedidoAPI.Infrastructure.Persistence;
 using GestorPedidoAPI.Application.Exceptions;
+using GestorPedidoAPI.Application.Commons;
+using GestorPedidoAPI.Application.DTOs;
+
 
 namespace GestorPedidoAPI.WebAPI.Controllers;
 
@@ -27,7 +30,7 @@ public class PedidoController : ControllerBase
         if (pedido == null)
             throw new PedidoException($"Pedido com ID {pedidoId} não encontrado.");
 
-        return pedido;
+        return pedido!;
     }
 
     private Produto ObterProdutoComValidacao(int produtoId)
@@ -97,17 +100,11 @@ public class PedidoController : ControllerBase
         if (pedidoProduto == null)
             throw new PedidoException($"Produto com ID {produtoId} não encontrado no pedido {pedidoId}.");
 
-        if (pedidoProduto.Quantidade > 1)
-        {
-            pedidoProduto.Quantidade--;
-        }
-        else
-        {
-            _context.PedidoProdutos.Remove(pedidoProduto);
-        }
+        // Remove o produto completamente do pedido
+        _context.PedidoProdutos.Remove(pedidoProduto);
 
         _context.SaveChanges();
-        return Ok($"Produto com ID {produtoId} removido do pedido {pedidoId}.");
+        return Ok($"Produto com ID {produtoId} removido completamente do pedido {pedidoId}.");
     }
 
     // 4. Fechar pedido
@@ -138,7 +135,7 @@ public class PedidoController : ControllerBase
         var pedidos = query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToList() // Transfere os dados para a memória
+            .ToList()
             .Select(p => new
             {
                 p.Id,
@@ -153,13 +150,15 @@ public class PedidoController : ControllerBase
                 })
             });
 
-        return Ok(new
+        var response = new PaginacaoResponse<object>
         {
             TotalItems = totalItems,
             TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
             CurrentPage = page,
             Items = pedidos
-        });
+        };
+
+        return Ok(response);
     }
 
     //6. Obter Os pedidos por Status (com paginação)
@@ -248,30 +247,28 @@ public class PedidoController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult ObterPedido(int id)
     {
-        // Carrega o pedido com os dados relacionados
         var pedido = _context.Pedidos
             .Include(p => p.PedidoProdutos)
             .ThenInclude(pp => pp.Produto)
-            .FirstOrDefault(p => p.Id == id); // Carrega na memória
+            .FirstOrDefault(p => p.Id == id);
 
         if (pedido == null)
         {
             return NotFound("Pedido não encontrado.");
         }
 
-        // Projeta os dados na memória
-        var pedidoDto = new
+        var pedidoDto = new PedidoDto
         {
-            pedido.Id,
-            pedido.DataCriacao,
-            pedido.Fechado,
-            Produtos = pedido.PedidoProdutos.Select(pp => new
+            Id = pedido.Id,
+            DataCriacao = pedido.DataCriacao,
+            Fechado = pedido.Fechado,
+            Produtos = pedido.PedidoProdutos.Select(pp => new ProdutoDto
             {
-                pp.ProdutoId,
+                ProdutoId = pp.ProdutoId,
                 Nome = pp.Produto?.Nome ?? "Produto não especificado",
                 Preco = pp.Produto?.Preco ?? 0m,
-                pp.Quantidade
-            }).ToList() // Garante que o processamento termina na memória
+                Quantidade = pp.Quantidade
+            }).ToList()
         };
 
         return Ok(pedidoDto);

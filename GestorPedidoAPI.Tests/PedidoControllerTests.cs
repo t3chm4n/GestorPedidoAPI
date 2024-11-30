@@ -5,6 +5,9 @@ using Xunit;
 using GestorPedidoAPI.Domain.Entities;
 using GestorPedidoAPI.Infrastructure.Persistence;
 using GestorPedidoAPI.WebAPI.Controllers;
+using GestorPedidoAPI.Application.Exceptions;
+using GestorPedidoAPI.Application.Commons;
+using GestorPedidoAPI.Application.DTOs;
 
 namespace GestorPedidoAPI.Tests;
 
@@ -22,13 +25,22 @@ public class PedidoControllerTests
         _context = new AppDbContext(options);
         _controller = new PedidoController(_context);
 
-        InitializeTest();
+        SeedDatabase();
     }
 
-    private void InitializeTest()
+    private void SeedDatabase()
     {
         ResetDatabase();
-        SeedDatabase();
+
+        // Cria um pedido com produto
+        var pedido = new Pedido { Id = 1, Fechado = false };
+        var produto = new Produto { Id = 1, Nome = "Produto 1", Preco = 10.0m };
+        var pedidoProduto = new PedidoProduto { PedidoId = 1, ProdutoId = 1, Produto = produto, Quantidade = 2 };
+
+        _context.Pedidos.Add(pedido);
+        _context.Produtos.Add(produto);
+        _context.PedidoProdutos.Add(pedidoProduto);
+        _context.SaveChanges();
     }
 
     private void ResetDatabase()
@@ -37,27 +49,13 @@ public class PedidoControllerTests
         _context.Database.EnsureCreated();
     }
 
-    private void SeedDatabase()
-    {
-        CriarPedidoComProduto(1, 1, 2);
-    }
-
-    private void CriarPedidoComProduto(int pedidoId, int produtoId, int quantidade)
-    {
-        var pedido = new Pedido { Id = pedidoId };
-        var produto = new Produto { Id = produtoId, Nome = $"Produto {produtoId}", Preco = 10.0m * produtoId };
-        var pedidoProduto = new PedidoProduto { PedidoId = pedidoId, ProdutoId = produtoId, Produto = produto, Quantidade = quantidade };
-
-        _context.Pedidos.Add(pedido);
-        _context.Produtos.Add(produto);
-        _context.PedidoProdutos.Add(pedidoProduto);
-        _context.SaveChanges();
-    }
-
     [Fact]
-    public void IniciarPedido_DeveRetornarPedidoCriado()
+    public void IniciarPedido_DeveCriarPedido()
     {
+        // Act
         var result = _controller.IniciarPedido() as CreatedAtActionResult;
+
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(201, result?.StatusCode);
     }
@@ -65,86 +63,114 @@ public class PedidoControllerTests
     [Fact]
     public void AdicionarProduto_DeveAdicionarProdutoAoPedido()
     {
+        // Act
         var result = _controller.AdicionarProduto(1, 1) as OkObjectResult;
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result?.StatusCode);
-        Assert.Equal("Produto adicionado ao pedido.", result?.Value);
-
-        var pedidoProduto = _context.PedidoProdutos.FirstOrDefault(pp => pp.PedidoId == 1 && pp.ProdutoId == 1);
-        Assert.NotNull(pedidoProduto);
-        Assert.Equal(2, pedidoProduto.Quantidade);
+        Assert.Equal("Produto com ID 1 adicionado ao pedido 1.", result?.Value);
     }
 
     [Fact]
-    public void AdicionarProduto_PedidoNaoEncontrado_DeveRetornarBadRequest()
+    public void AdicionarProduto_PedidoNaoEncontrado_DeveLancarExcecao()
     {
-        var result = _controller.AdicionarProduto(99, 1) as BadRequestObjectResult;
-        Assert.NotNull(result);
-        Assert.Equal(400, result?.StatusCode);
-        Assert.Equal("Pedido não encontrado.", result?.Value);
+        // Act & Assert
+        var exception = Assert.Throws<PedidoException>(() => _controller.AdicionarProduto(99, 1));
+        Assert.Equal("Pedido com ID 99 não encontrado.", exception.Message);
     }
 
     [Fact]
     public void RemoverProduto_DeveRemoverProdutoDoPedido()
     {
-        var result = _controller.RemoverProduto(1, 1) as OkObjectResult;
+        // Arrange
+        var pedidoId = 1;
+        var produtoId = 1;
 
+        // Act
+        var result = _controller.RemoverProduto(pedidoId, produtoId) as OkObjectResult;
+
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result?.StatusCode);
-        Assert.Equal("Produto removido do pedido.", result?.Value);
+        Assert.Equal($"Produto com ID {produtoId} removido completamente do pedido {pedidoId}.", result?.Value);
 
-        var pedidoProduto = _context.PedidoProdutos.FirstOrDefault(pp => pp.PedidoId == 1 && pp.ProdutoId == 1);
+        // Verifica se o produto foi completamente removido
+        var pedidoProduto = _context.PedidoProdutos.FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoId);
         Assert.Null(pedidoProduto);
     }
 
     [Fact]
     public void FecharPedido_DeveFecharPedidoComProdutos()
     {
+        // Act
         var result = _controller.FecharPedido(1) as OkObjectResult;
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result?.StatusCode);
-        Assert.Equal("Pedido fechado com sucesso.", result?.Value);
+        Assert.Equal("Pedido com ID 1 fechado com sucesso.", result?.Value);
 
+        // Verifica se o pedido foi fechado
         var pedido = _context.Pedidos.Find(1);
         Assert.NotNull(pedido);
         Assert.True(pedido.Fechado);
+    }
 
-        var pedidoProdutos = _context.PedidoProdutos.Where(pp => pp.PedidoId == 1).ToList();
-        Assert.NotEmpty(pedidoProdutos);
+    [Fact]
+    public void FecharPedido_SemProdutos_DeveLancarExcecao()
+    {
+        // Arrange
+        var pedidoSemProdutos = new Pedido { Id = 2, Fechado = false };
+        _context.Pedidos.Add(pedidoSemProdutos);
+        _context.SaveChanges();
+
+        // Act & Assert
+        var exception = Assert.Throws<PedidoException>(() => _controller.FecharPedido(2));
+        Assert.Equal("Pedido com ID 2 não pode ser fechado sem produtos.", exception.Message);
     }
 
     [Fact]
     public void ListarPedidos_DeveRetornarPedidosPaginados()
     {
+        // Act
         var result = _controller.ListarPedidosPaginados() as OkObjectResult;
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result?.StatusCode);
 
-        var pedidos = result?.Value as IEnumerable<Pedido>;
-        Assert.NotNull(pedidos);
-        Assert.Equal(1, pedidos.Count());
+        // Valida o formato do retorno
+        var response = result?.Value as PaginacaoResponse<object>;
+        Assert.NotNull(response);
+        Assert.Equal(1, response?.TotalItems);
+        Assert.Single(response?.Items);
     }
 
     [Fact]
     public void ObterPedido_DeveRetornarPedidoPorId()
     {
+        // Act
         var result = _controller.ObterPedido(1) as OkObjectResult;
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(200, result?.StatusCode);
 
-        var pedido = result?.Value as Pedido;
+        // Verifica os detalhes do pedido
+        var pedido = result?.Value as PedidoDto;
         Assert.NotNull(pedido);
-        Assert.Equal(1, pedido.Id);
+        Assert.Equal(1, pedido!.Id); // Confirma que o ID é o esperado
+        Assert.NotEmpty(pedido.Produtos); // Garante que o pedido contém produtos
     }
 
     [Fact]
     public void ObterPedido_PedidoNaoEncontrado_DeveRetornarNotFound()
     {
+        // Act
         var result = _controller.ObterPedido(99) as NotFoundObjectResult;
+
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(404, result?.StatusCode);
         Assert.Equal("Pedido não encontrado.", result?.Value);

@@ -14,10 +14,12 @@ C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.OpenApi.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Domain.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Infrastructure.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Domain.pdb
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Infrastructure.pdb
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.pdb
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.csproj.AssemblyReference.cache
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.GeneratedMSBuildEditorConfig.editorconfig
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.AssemblyInfoInputs.cache
@@ -42,5 +44,3 @@ C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\refint\WebAPI.dll
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.pdb
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.genruntimeconfig.cache
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\ref\WebAPI.dll
-C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.dll
-C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.pdb
