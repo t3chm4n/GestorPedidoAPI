@@ -143,8 +143,8 @@ public class PedidoControllerTests
         // Valida o formato do retorno
         var response = result?.Value as PaginacaoResponse<object>;
         Assert.NotNull(response);
-        Assert.Equal(1, response?.TotalItems);
-        Assert.Single(response?.Items);
+        Assert.Equal(1, response.TotalItems); // Removido o operador ?. 
+        Assert.Single(response.Items); // Removido o operador ?.
     }
 
     [Fact]

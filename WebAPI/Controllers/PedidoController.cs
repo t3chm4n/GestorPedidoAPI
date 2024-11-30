@@ -219,7 +219,7 @@ public class PedidoController : ControllerBase
 
         if (status != "aberto" && status != "fechado")
         {
-            return null; // Retorna null para indicar status inválido
+            throw new ArgumentException("Status deve ser 'aberto' ou 'fechado'.", nameof(status));
         }
 
         bool fechado = status == "fechado";
