@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GestorPedidoAPI.Domain.Entities;
 using GestorPedidoAPI.Infrastructure.Persistence;
+using GestorPedidoAPI.Application.Exceptions;
 
 namespace GestorPedidoAPI.WebAPI.Controllers;
 
@@ -14,6 +15,28 @@ public class PedidoController : ControllerBase
     public PedidoController(AppDbContext context)
     {
         _context = context;
+    }
+
+    private Pedido ObterPedidoComValidacao(int pedidoId)
+    {
+        var pedido = _context.Pedidos
+            .Include(p => p.PedidoProdutos)
+            .ThenInclude(pp => pp.Produto)
+            .FirstOrDefault(p => p.Id == pedidoId);
+
+        if (pedido == null)
+            throw new PedidoException($"Pedido com ID {pedidoId} não encontrado.");
+
+        return pedido;
+    }
+
+    private Produto ObterProdutoComValidacao(int produtoId)
+    {
+        var produto = _context.Produtos.Find(produtoId);
+        if (produto == null)
+            throw new PedidoException($"Produto com ID {produtoId} não encontrado.");
+
+        return produto;
     }
 
     // 1. Iniciar um novo pedido
@@ -30,21 +53,12 @@ public class PedidoController : ControllerBase
     [HttpPost("{pedidoId}/adicionar-produto")]
     public IActionResult AdicionarProduto(int pedidoId, [FromBody] int produtoId)
     {
-        var pedido = _context.Pedidos.Find(pedidoId);
-        if (pedido == null || pedido.Fechado)
-        {
-            return BadRequest("Pedido não encontrado.");
-        }
-        if (pedido.Fechado)
-        {
-            return BadRequest("Pedido já fechado.");
-        }
+        var pedido = ObterPedidoComValidacao(pedidoId);
 
-        var produto = _context.Produtos.Find(produtoId);
-        if (produto == null)
-        {
-            return NotFound("Produto não encontrado.");
-        }
+        if (pedido.Fechado)
+            throw new PedidoException($"Pedido com ID {pedidoId} já está fechado.");
+
+        var produto = ObterProdutoComValidacao(produtoId);
 
         var pedidoProduto = _context.PedidoProdutos
             .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoId);
@@ -65,26 +79,23 @@ public class PedidoController : ControllerBase
         }
 
         _context.SaveChanges();
-        return Ok("Produto adicionado ao pedido.");
+        return Ok($"Produto com ID {produtoId} adicionado ao pedido {pedidoId}.");
     }
 
     // 3. Remover produto do pedido
     [HttpPost("{pedidoId}/remover-produto")]
     public IActionResult RemoverProduto(int pedidoId, [FromBody] int produtoId)
     {
-        var pedido = _context.Pedidos.Find(pedidoId);
-        if (pedido == null || pedido.Fechado)
-        {
-            return BadRequest("Pedido não encontrado ou já fechado.");
-        }
+        var pedido = ObterPedidoComValidacao(pedidoId);
+
+        if (pedido.Fechado)
+            throw new PedidoException($"Pedido com ID {pedidoId} já está fechado.");
 
         var pedidoProduto = _context.PedidoProdutos
             .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoId);
 
         if (pedidoProduto == null)
-        {
-            return NotFound("Produto não encontrado no pedido.");
-        }
+            throw new PedidoException($"Produto com ID {produtoId} não encontrado no pedido {pedidoId}.");
 
         if (pedidoProduto.Quantidade > 1)
         {
@@ -96,36 +107,37 @@ public class PedidoController : ControllerBase
         }
 
         _context.SaveChanges();
-        return Ok("Produto removido do pedido.");
+        return Ok($"Produto com ID {produtoId} removido do pedido {pedidoId}.");
     }
 
     // 4. Fechar pedido
     [HttpPost("{pedidoId}/fechar")]
     public IActionResult FecharPedido(int pedidoId)
     {
-        var pedido = _context.Pedidos.Find(pedidoId);
-        if (pedido == null)
-        {
-            return NotFound("Pedido não encontrado.");
-        }
+        var pedido = ObterPedidoComValidacao(pedidoId);
 
-        if (pedido.PedidoProdutos == null || !pedido.PedidoProdutos.Any())
-        {
-            return BadRequest("Pedido não pode ser fechado sem produtos.");
-        }
+        if (!pedido.PedidoProdutos.Any())
+            throw new PedidoException($"Pedido com ID {pedidoId} não pode ser fechado sem produtos.");
 
         pedido.Fechado = true;
         _context.SaveChanges();
-        return Ok("Pedido fechado com sucesso.");
+
+        return Ok($"Pedido com ID {pedidoId} fechado com sucesso.");
     }
 
     // 5. Listar pedidos
     [HttpGet]
-    public IActionResult ListarPedidos()
+    public IActionResult ListarPedidosPaginados([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var pedidos = _context.Pedidos
+        var query = _context.Pedidos
             .Include(p => p.PedidoProdutos)
-            .ThenInclude(pp => pp.Produto) // Inclua os produtos no carregamento
+            .ThenInclude(pp => pp.Produto);
+
+        var totalItems = query.Count();
+
+        var pedidos = query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToList() // Transfere os dados para a memória
             .Select(p => new
             {
@@ -141,38 +153,127 @@ public class PedidoController : ControllerBase
                 })
             });
 
-        return Ok(pedidos);
+        return Ok(new
+        {
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+            CurrentPage = page,
+            Items = pedidos
+        });
     }
 
-    // 6. Obter pedido pelo ID
+    //6. Obter Os pedidos por Status (com paginação)
+    [HttpGet("filtrar")]
+    public IActionResult ListarPedidosPaginadosEPorStatus([FromQuery] int page = 1, [FromQuery] int size = 10, [FromQuery] string? status = null)
+    {
+        // Validação de entrada
+        var validationResult = ValidarParametrosDePaginacao(page, size);
+        if (validationResult != null)
+        {
+            return validationResult;
+        }
+
+        // Construção da query inicial
+        IQueryable<Pedido> query = _context.Pedidos
+            .Include(p => p.PedidoProdutos)
+            .ThenInclude(pp => pp.Produto);
+
+        // Aplicar filtro de status, se necessário
+        query = AplicarFiltroDeStatus(query, status);
+        if (query == null)
+        {
+            return BadRequest("Status deve ser 'aberto' ou 'fechado'.");
+        }
+
+        // Paginação e carregamento dos dados
+        var pedidosPaginados = query
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToList();
+
+        // Projeção dos dados
+        var pedidosDto = ProjetarPedidosParaDto(pedidosPaginados);
+
+        return Ok(new //deixando pronto para o frontend
+        {
+            TotalItems = query.Count(),
+            TotalPages = (int)Math.Ceiling((double)query.Count() / size),
+            CurrentPage = page,
+            Items = pedidosDto
+        });
+    }
+
+    private IActionResult? ValidarParametrosDePaginacao(int page, int size)
+    {
+        if (page <= 0 || size <= 0)
+        {
+            return BadRequest("Página e tamanho devem ser maiores que 0.");
+        }
+        return null;
+    }
+    private IQueryable<Pedido> AplicarFiltroDeStatus(IQueryable<Pedido> query, string? status)
+    {
+        if (string.IsNullOrEmpty(status))
+        {
+            return query; // Sem filtro
+        }
+
+        if (status != "aberto" && status != "fechado")
+        {
+            return null; // Retorna null para indicar status inválido
+        }
+
+        bool fechado = status == "fechado";
+        return query.Where(p => p.Fechado == fechado);
+    }
+    private IEnumerable<object> ProjetarPedidosParaDto(IEnumerable<Pedido> pedidos)
+    {
+        return pedidos.Select(p => new
+        {
+            p.Id,
+            p.DataCriacao,
+            p.Fechado,
+            Produtos = p.PedidoProdutos.Select(pp => new
+            {
+                pp.ProdutoId,
+                Nome = pp.Produto?.Nome ?? "Produto não especificado",
+                Preco = pp.Produto?.Preco ?? 0m,
+                pp.Quantidade
+            }).ToList()
+        });
+    }
+
+
+    // 7. Obter pedido pelo ID
     [HttpGet("{id}")]
     public IActionResult ObterPedido(int id)
     {
+        // Carrega o pedido com os dados relacionados
         var pedido = _context.Pedidos
             .Include(p => p.PedidoProdutos)
-            .ThenInclude(pp => pp.Produto) // Inclua os produtos
-            .Where(p => p.Id == id)
-            .ToList() // Carrega os dados para memória
-            .Select(p => new
-            {
-                p.Id,
-                p.DataCriacao,
-                p.Fechado,
-                Produtos = p.PedidoProdutos.Select(pp => new
-                {
-                    pp.ProdutoId,
-                    Nome = pp.Produto?.Nome ?? "Produto não especificado",
-                    Preco = pp.Produto?.Preco ?? 0m,
-                    pp.Quantidade
-                })
-            })
-            .FirstOrDefault();
+            .ThenInclude(pp => pp.Produto)
+            .FirstOrDefault(p => p.Id == id); // Carrega na memória
 
         if (pedido == null)
         {
             return NotFound("Pedido não encontrado.");
         }
 
-        return Ok(pedido);
+        // Projeta os dados na memória
+        var pedidoDto = new
+        {
+            pedido.Id,
+            pedido.DataCriacao,
+            pedido.Fechado,
+            Produtos = pedido.PedidoProdutos.Select(pp => new
+            {
+                pp.ProdutoId,
+                Nome = pp.Produto?.Nome ?? "Produto não especificado",
+                Preco = pp.Produto?.Preco ?? 0m,
+                pp.Quantidade
+            }).ToList() // Garante que o processamento termina na memória
+        };
+
+        return Ok(pedidoDto);
     }
 }

@@ -2,6 +2,7 @@ namespace GestorPedidoAPI.WebAPI;
 
 using Microsoft.EntityFrameworkCore;
 using GestorPedidoAPI.Infrastructure.Persistence;
+using GestorPedidoAPI.WebAPI.Middlewares;
 
 public class Program
 {
@@ -17,6 +18,8 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
+
+        app.UseMiddleware<ExceptionMiddleware>();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())

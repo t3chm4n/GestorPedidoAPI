@@ -42,3 +42,5 @@ C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\refint\WebAPI.dll
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.pdb
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\WebAPI.genruntimeconfig.cache
 C:\GestorPedidoAPI\WebAPI\obj\Debug\net9.0\ref\WebAPI.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Application.pdb
