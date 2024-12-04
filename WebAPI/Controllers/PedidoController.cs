@@ -42,46 +42,6 @@ public class PedidoController : ControllerBase
         return produto;
     }
 
-    private IActionResult? ValidarParametrosDePaginacao(int page, int size)
-    {
-        if (page <= 0 || size <= 0)
-        {
-            return BadRequest("Página e tamanho devem ser maiores que 0.");
-        }
-        return null;
-    }
-    private IQueryable<PedidoEntity> AplicarFiltroDeStatus(IQueryable<PedidoEntity> query, string? status)
-    {
-        if (string.IsNullOrWhiteSpace(status))
-        {
-            return query; // Sem filtro
-        }
-
-        if (Enum.TryParse<PedidoStatus>(status, true, out var parsedStatus))
-        {
-            return query.Where(p => p.Status == parsedStatus.ToString());
-        }
-
-        throw new ArgumentException("Status deve ser 'Aberto' ou 'Fechado'.", nameof(status));
-    }
-
-    private IEnumerable<object> ProjetarPedidosParaDto(IEnumerable<PedidoEntity> pedidos)
-    {
-        return pedidos.Select(p => new
-        {
-            p.Id,
-            p.DataCriacao,
-            Status = Enum.TryParse<PedidoStatus>(p.Status, out var status) ? status : PedidoStatus.Desconhecido, // Manipulação robusta do status
-            Produtos = p.PedidoProdutos.Select(pp => new
-            {
-                pp.ProdutoId,
-                Nome = pp.Produto?.Nome ?? "Produto não especificado",
-                Preco = pp.Produto?.Preco ?? 0m,
-                pp.Quantidade
-            }).ToList()
-        });
-    }
-
     /// <summary>
     /// Cria um novo pedido com uma lista inicial de produtos.
     /// </summary>
