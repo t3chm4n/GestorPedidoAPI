@@ -13,7 +13,7 @@ public class RemoverProdutoTests : TestBase
         var produtoId = 1;
 
         // Act
-        var result = Controller.RemoverProduto(pedidoId, produtoId) as OkObjectResult;
+        var result = PedidoController.RemoverProduto(pedidoId, produtoId) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -33,7 +33,7 @@ public class RemoverProdutoTests : TestBase
         var produtoId = 1;
 
         // Act
-        var result = Controller.RemoverProduto(pedidoId, produtoId) as BadRequestObjectResult;
+        var result = PedidoController.RemoverProduto(pedidoId, produtoId) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -51,14 +51,14 @@ public class RemoverProdutoTests : TestBase
         var produtos = Context.PedidoProdutos.Where(pp => pp.PedidoId == pedidoId).ToList();
         foreach (var produto in produtos.SkipLast(1))
         {
-            Controller.RemoverProduto(pedidoId, produto.ProdutoId);
+            PedidoController.RemoverProduto(pedidoId, produto.ProdutoId);
         }
 
         // Tenta remover o último produto
         var ultimoProdutoId = produtos.Last().ProdutoId;
 
         // Act
-        var result = Controller.RemoverProduto(pedidoId, ultimoProdutoId) as BadRequestObjectResult;
+        var result = PedidoController.RemoverProduto(pedidoId, ultimoProdutoId) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -75,7 +75,7 @@ public class RemoverProdutoTests : TestBase
         var produtoId = 99; // Produto inexistente
 
         // Act
-        var result = Controller.RemoverProduto(pedidoId, produtoId) as NotFoundObjectResult;
+        var result = PedidoController.RemoverProduto(pedidoId, produtoId) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);

@@ -21,7 +21,7 @@ public class PedidoController : ControllerBase
         _context = context;
     }
 
-    private Pedido ObterPedidoComValidacao(int pedidoId)
+    private PedidoEntity ObterPedidoComValidacao(int pedidoId)
     {
         var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == pedidoId);
         if (pedido == null)
@@ -31,7 +31,7 @@ public class PedidoController : ControllerBase
         return pedido;
     }
 
-    private Produto? ObterProdutoComValidacao(int produtoId)
+    private ProdutoEntity? ObterProdutoComValidacao(int produtoId)
     {
         var produto = _context.Produtos.Find(produtoId);
         if (produto == null)
@@ -50,7 +50,7 @@ public class PedidoController : ControllerBase
         }
         return null;
     }
-    private IQueryable<Pedido> AplicarFiltroDeStatus(IQueryable<Pedido> query, string? status)
+    private IQueryable<PedidoEntity> AplicarFiltroDeStatus(IQueryable<PedidoEntity> query, string? status)
     {
         if (string.IsNullOrWhiteSpace(status))
         {
@@ -65,7 +65,7 @@ public class PedidoController : ControllerBase
         throw new ArgumentException("Status deve ser 'Aberto' ou 'Fechado'.", nameof(status));
     }
 
-    private IEnumerable<object> ProjetarPedidosParaDto(IEnumerable<Pedido> pedidos)
+    private IEnumerable<object> ProjetarPedidosParaDto(IEnumerable<PedidoEntity> pedidos)
     {
         return pedidos.Select(p => new
         {
@@ -131,7 +131,7 @@ public class PedidoController : ControllerBase
         }
 
         // Cria o pedido com status inicial "Aberto"
-        var pedido = new Pedido
+        var pedido = new PedidoEntity
         {
             Status = PedidoStatus.Aberto.ToString()
         };
@@ -255,7 +255,7 @@ public class PedidoController : ControllerBase
         if (produtosDto == null || !produtosDto.Any())
             return BadRequest("A lista de produtos não pode estar vazia.");
 
-        Pedido pedido;
+        PedidoEntity pedido;
         try
         {
             pedido = ObterPedidoComValidacao(pedidoId);
@@ -444,7 +444,7 @@ public class PedidoController : ControllerBase
         if (duplicados.Any())
             return BadRequest($"Produtos duplicados no request: {string.Join(", ", duplicados)}.");
 
-        Pedido pedido;
+        PedidoEntity pedido;
         try
         {
             pedido = ObterPedidoComValidacao(pedidoId);

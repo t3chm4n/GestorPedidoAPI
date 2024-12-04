@@ -13,7 +13,7 @@ public class ReabrirPedidoTests : TestBase
         var pedidoId = 3; // Pedido fechado no SeedDatabase
 
         // Act
-        var result = Controller.ReabrirPedido(pedidoId) as OkObjectResult;
+        var result = PedidoController.ReabrirPedido(pedidoId) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -33,7 +33,7 @@ public class ReabrirPedidoTests : TestBase
         var pedidoId = 1; // Pedido já aberto no SeedDatabase
 
         // Act
-        var result = Controller.ReabrirPedido(pedidoId) as BadRequestObjectResult;
+        var result = PedidoController.ReabrirPedido(pedidoId) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -48,7 +48,7 @@ public class ReabrirPedidoTests : TestBase
         var pedidoId = 99; // Pedido inexistente
 
         // Act
-        var result = Controller.ReabrirPedido(pedidoId) as NotFoundObjectResult;
+        var result = PedidoController.ReabrirPedido(pedidoId) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -67,7 +67,7 @@ public class ReabrirPedidoTests : TestBase
         Context.SaveChanges();
 
         // Act
-        var result = Controller.ReabrirPedido(pedidoId) as BadRequestObjectResult;
+        var result = PedidoController.ReabrirPedido(pedidoId) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);

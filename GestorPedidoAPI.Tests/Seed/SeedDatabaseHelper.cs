@@ -1,5 +1,4 @@
 using GestorPedidoAPI.Domain.Entities;
-using PedidoEntity = GestorPedidoAPI.Domain.Entities.Pedido;
 using GestorPedidoAPI.Infrastructure.Persistence;
 using GestorPedidoAPI.Domain.Enums;
 
@@ -13,11 +12,13 @@ public static class SeedDatabaseHelper
         ResetDatabase(context);
 
         // Produtos
-        var produtos = new List<Produto>
+        var produtos = new List<ProdutoEntity>
         {
-            new Produto { Id = 1, Nome = "Produto 1", Preco = 10.0m },
-            new Produto { Id = 2, Nome = "Produto 2", Preco = 20.0m },
-            new Produto { Id = 3, Nome = "Produto 3", Preco = 30.0m }
+            new ProdutoEntity { Id = 1, Nome = "Produto 1", Preco = 10.0m },
+            new ProdutoEntity { Id = 2, Nome = "Produto 2", Preco = 20.0m },
+            new ProdutoEntity { Id = 3, Nome = "Produto 3", Preco = 30.0m },
+            new ProdutoEntity { Id = 4, Nome = "Produto 4", Preco = 40.0m }, // Não associado
+            new ProdutoEntity { Id = 5, Nome = "Produto 5", Preco = 50.0m }  // Não associado
         };
 
         // Pedidos

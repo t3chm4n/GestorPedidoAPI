@@ -18,7 +18,7 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AtualizarProduto(pedidoId, produtosDto) as OkObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -48,7 +48,7 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -68,7 +68,7 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -87,7 +87,7 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AtualizarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -107,7 +107,7 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);

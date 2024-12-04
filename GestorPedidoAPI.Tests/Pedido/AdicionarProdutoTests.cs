@@ -18,7 +18,7 @@ public class AdicionarProdutoTests : TestBase
     };
 
         // Act
-        var result = Controller.AdicionarProduto(pedidoId, produtosDto) as OkObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -48,7 +48,7 @@ public class AdicionarProdutoTests : TestBase
     };
 
         // Act
-        var result = Controller.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -65,7 +65,7 @@ public class AdicionarProdutoTests : TestBase
         var produtosDto = new List<ProdutoPedidoDto>(); // Lista vazia
 
         // Act
-        var result = Controller.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -84,7 +84,7 @@ public class AdicionarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -103,7 +103,7 @@ public class AdicionarProdutoTests : TestBase
         };
 
         // Act
-        var result = Controller.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);

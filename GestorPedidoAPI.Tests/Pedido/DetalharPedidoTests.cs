@@ -10,7 +10,7 @@ public class DetalharPedidoTests : TestBase
     public void DetalharPedido_DeveRetornarDetalhesDoPedido()
     {
         // Act
-        var result = Controller.DetalharPedido(1) as OkObjectResult;
+        var result = PedidoController.DetalharPedido(1) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -30,7 +30,7 @@ public class DetalharPedidoTests : TestBase
     [Fact]
     public void DetalharPedido_PedidoNaoEncontrado_DeveRetornarNotFound()
     {
-        var result = Controller.DetalharPedido(99) as NotFoundObjectResult;
+        var result = PedidoController.DetalharPedido(99) as NotFoundObjectResult;
 
         Assert.NotNull(result);
         Assert.Equal(404, result?.StatusCode);

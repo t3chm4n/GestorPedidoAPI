@@ -20,7 +20,7 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = Controller.CriarPedido(criarPedidoDto) as CreatedAtActionResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as CreatedAtActionResult;
 
         // Assert
         Assert.NotNull(result);
@@ -42,7 +42,7 @@ public class CriarPedidoTests : TestBase
         var criarPedidoDto = new CriarPedidoDto { Produtos = new List<ProdutoPedidoDto>() };
 
         // Act
-        var result = Controller.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -63,7 +63,7 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = Controller.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -84,7 +84,7 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = Controller.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -106,7 +106,7 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = Controller.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);

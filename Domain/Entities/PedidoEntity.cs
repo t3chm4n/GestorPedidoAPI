@@ -2,7 +2,7 @@ using GestorPedidoAPI.Domain.Enums;
 
 namespace GestorPedidoAPI.Domain.Entities
 {
-    public class Pedido
+    public class PedidoEntity
     {
         public int Id { get; set; }
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;

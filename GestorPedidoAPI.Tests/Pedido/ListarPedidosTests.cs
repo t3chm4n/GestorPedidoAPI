@@ -11,7 +11,7 @@ public class ListarPedidosTests : TestBase
     public void ListarPedidos_DeveRetornarPedidosPaginados()
     {
         // Act
-        var result = Controller.ListarPedidosPaginados(1, 10) as OkObjectResult;
+        var result = PedidoController.ListarPedidosPaginados(1, 10) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -29,7 +29,7 @@ public class ListarPedidosTests : TestBase
     public void ListarPedidos_ComPaginacao_DeveRespeitarParametros()
     {
         // Act
-        var result = Controller.ListarPedidosPaginados(1, 2) as OkObjectResult;
+        var result = PedidoController.ListarPedidosPaginados(1, 2) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -47,7 +47,7 @@ public class ListarPedidosTests : TestBase
     public void ListarPedidos_PaginaInexistente_DeveRetornarSemItens()
     {
         // Act
-        var result = Controller.ListarPedidosPaginados(5, 10) as OkObjectResult;
+        var result = PedidoController.ListarPedidosPaginados(5, 10) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -65,7 +65,7 @@ public class ListarPedidosTests : TestBase
     public void ListarPedidos_ComFiltroDeStatus_DeveRetornarApenasPedidosDoFiltro()
     {
         // Act
-        var result = Controller.ListarPedidosPaginadosEPorStatus(1, 10, PedidoStatus.Fechado.ToString()) as OkObjectResult;
+        var result = PedidoController.ListarPedidosPaginadosEPorStatus(1, 10, PedidoStatus.Fechado.ToString()) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -82,7 +82,7 @@ public class ListarPedidosTests : TestBase
     public void ListarPedidos_StatusInvalido_DeveRetornarBadRequest()
     {
         // Act
-        var result = Controller.ListarPedidosPaginadosEPorStatus(1, 10, "invalido") as BadRequestObjectResult;
+        var result = PedidoController.ListarPedidosPaginadosEPorStatus(1, 10, "invalido") as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
