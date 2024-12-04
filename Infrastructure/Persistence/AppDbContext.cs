@@ -7,9 +7,9 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<PedidoEntity> Pedidos { get; set; }
-    public DbSet<ProdutoEntity> Produtos { get; set; }
-    public DbSet<PedidoProduto> PedidoProdutos { get; set; }
+    public DbSet<PedidoEntity> Pedidos { get; set; } = null!;
+    public DbSet<ProdutoEntity> Produtos { get; set; } = null!;
+    public DbSet<PedidoProduto> PedidoProdutos { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
