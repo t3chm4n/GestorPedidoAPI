@@ -70,11 +70,14 @@ Este projeto é uma **API para Gestão de Pedidos**, construída em **.NET** com
 
 ## To-Do Próximos Passos
 
-1. **Endpoints para Produtos**
+1. **Endpoints para Pedidos**
+   - Separar os endpoints em arquivos, para melhor organização (arquivo atual está com 900 linhas).
+
+2. **Endpoints para Produtos**
    - Implementar edição e exclusão de produtos.
    - Melhorar regras de validação nos endpoints existentes.
 
-2. **Documentação Externa**
+3. **Documentação Externa**
    - Publicar documentação externa: já deixei os endpoints com comentários para geração de XML e HTML docs
 
 ---
