@@ -75,6 +75,6 @@ Este projeto é uma **API para Gestão de Pedidos**, construída em **.NET** com
    - Melhorar regras de validação nos endpoints existentes.
 
 2. **Documentação Externa**
-   - Publicar os detalhes de uso em uma plataforma de documentação externa.
+   - Publicar documentação externa: já deixei os endpoints com comentários para geração de XML e HTML docs
 
 ---
