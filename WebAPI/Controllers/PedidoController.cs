@@ -344,7 +344,15 @@ public class PedidoController : ControllerBase
 
     public IActionResult RemoverProduto(int pedidoId, int produtoId)
     {
-        var pedido = ObterPedidoComValidacao(pedidoId);
+        PedidoEntity pedido;
+        try
+        {
+            pedido = ObterPedidoComValidacao(pedidoId);
+        }
+        catch (PedidoException ex)
+        {
+            return NotFound(ex.Message);
+        }
 
         if (pedido.Status == PedidoStatus.Fechado.ToString())
             return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
@@ -525,7 +533,15 @@ public class PedidoController : ControllerBase
     [SwaggerResponse(404, "Pedido não encontrado.")]
     public IActionResult FecharPedido(int pedidoId)
     {
-        var pedido = ObterPedidoComValidacao(pedidoId);
+        PedidoEntity pedido;
+        try
+        {
+            pedido = ObterPedidoComValidacao(pedidoId);
+        }
+        catch (PedidoException ex)
+        {
+            return NotFound(ex.Message);
+        }
 
         if (!pedido.PedidoProdutos.Any())
             throw new PedidoException($"Pedido com ID {pedidoId} não pode ser fechado sem produtos.");

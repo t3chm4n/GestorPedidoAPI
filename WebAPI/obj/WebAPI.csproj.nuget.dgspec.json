@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj": {}
+    "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj": {}
   },
   "projects": {
     "C:\\GestorPedidoAPI\\Application\\Application.csproj": {
@@ -199,14 +199,14 @@
         }
       }
     },
-    "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj": {
+    "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj",
+        "projectUniqueName": "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj",
         "projectName": "WebAPI",
-        "projectPath": "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj",
+        "projectPath": "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj",
         "packagesPath": "C:\\Users\\t3chm\\.nuget\\packages\\",
-        "outputPath": "C:\\GestorPedidoAPI\\webapi\\obj\\",
+        "outputPath": "C:\\GestorPedidoAPI\\WebAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\t3chm\\AppData\\Roaming\\NuGet\\NuGet.Config"

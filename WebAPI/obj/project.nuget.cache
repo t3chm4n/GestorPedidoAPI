@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "yhIuPGmV5Xw=",
+  "dgSpecHash": "yrS+KC+E0hM=",
   "success": true,
-  "projectFilePath": "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj",
+  "projectFilePath": "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\t3chm\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.0\\microsoft.aspnetcore.openapi.9.0.0.nupkg.sha512",
     "C:\\Users\\t3chm\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.0\\microsoft.entityframeworkcore.9.0.0.nupkg.sha512",
