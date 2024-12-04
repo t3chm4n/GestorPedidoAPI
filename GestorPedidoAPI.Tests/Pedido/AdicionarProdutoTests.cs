@@ -12,10 +12,9 @@ public class AdicionarProdutoTests : TestBase
         // Arrange
         var pedidoId = 1;
         var produtosDto = new List<ProdutoPedidoDto>
-    {
-        new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 3 }, // Produto já existente
-        new ProdutoPedidoDto { ProdutoId = 3, Quantidade = 2 }  // Novo produto
-    };
+        {
+            new ProdutoPedidoDto { ProdutoId = 3, Quantidade = 2 }  // Novo produto
+        };
 
         // Act
         var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as OkObjectResult;
@@ -29,10 +28,6 @@ public class AdicionarProdutoTests : TestBase
         var pedidoProdutos = Context.PedidoProdutos.Where(pp => pp.PedidoId == pedidoId).ToList();
         Assert.Equal(3, pedidoProdutos.Count); // 2 do Seed + 1 novo
 
-        // Verifique os detalhes
-        var produtoExistente = pedidoProdutos.First(pp => pp.ProdutoId == 1);
-        Assert.Equal(5, produtoExistente.Quantidade); // 2 do Seed + 3 do DTO
-
         var produtoNovo = pedidoProdutos.First(pp => pp.ProdutoId == 3);
         Assert.Equal(2, produtoNovo.Quantidade); // Novo produto adicionado
     }
@@ -43,9 +38,9 @@ public class AdicionarProdutoTests : TestBase
         // Arrange
         var pedidoId = 3; // Pedido fechado no seed
         var produtosDto = new List<ProdutoPedidoDto>
-    {
-        new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 }
-    };
+        {
+            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 }
+        };
 
         // Act
         var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
@@ -55,7 +50,6 @@ public class AdicionarProdutoTests : TestBase
         Assert.Equal(400, result.StatusCode);
         Assert.Equal($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.", result.Value);
     }
-
 
     [Fact]
     public void AdicionarProduto_ListaVazia_DeveRetornarBadRequest()
@@ -109,5 +103,24 @@ public class AdicionarProdutoTests : TestBase
         Assert.NotNull(result);
         Assert.Equal(404, result.StatusCode);
         Assert.Equal($"Pedido com ID {pedidoId} não encontrado.", result.Value);
+    }
+
+    [Fact]
+    public void AdicionarProduto_ProdutoDuplicadoNoPedido_DeveRetornarBadRequest()
+    {
+        // Arrange
+        var pedidoId = 1;
+        var produtosDto = new List<ProdutoPedidoDto>
+        {
+            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 }, // Produto já associado
+        };
+
+        // Act
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal($"Produto com ID {produtosDto.First().ProdutoId} já existe no pedido e não pode ser duplicado.", result.Value);
     }
 }

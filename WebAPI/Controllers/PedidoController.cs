@@ -31,12 +31,12 @@ public class PedidoController : ControllerBase
         return pedido;
     }
 
-    private ProdutoEntity? ObterProdutoComValidacao(int produtoId)
+    private ProdutoEntity ObterProdutoComValidacao(int produtoId)
     {
         var produto = _context.Produtos.Find(produtoId);
         if (produto == null)
         {
-            return null; // Retorna null se o produto não for encontrado
+            throw new PedidoException($"Produto com ID {produtoId} não encontrado.");
         }
 
         return produto;
@@ -225,14 +225,17 @@ public class PedidoController : ControllerBase
             return NotFound(ex.Message);
         }
 
-        if (pedido.Status == PedidoStatus.Fechado.ToString())
-            return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
-
         foreach (var produtoDto in produtosDto)
         {
-            var produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
-            if (produto == null)
-                return NotFound($"Produto com ID {produtoDto.ProdutoId} não encontrado.");
+            ProdutoEntity produto;
+            try
+            {
+                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+            }
+            catch (PedidoException ex)
+            {
+                return NotFound(ex.Message);
+            }
 
             // Verifique se o produto já está associado ao pedido
             var pedidoProdutoExistente = _context.PedidoProdutos
@@ -241,7 +244,10 @@ public class PedidoController : ControllerBase
             if (pedidoProdutoExistente != null)
             {
                 // Atualize a quantidade se já estiver associado
-                pedidoProdutoExistente.Quantidade += produtoDto.Quantidade;
+                // pedidoProdutoExistente.Quantidade = produtoDto.Quantidade;
+                // TODO: lançar exceção de produto já existente
+                return BadRequest($"Produto com ID {produtoDto.ProdutoId} já existe no pedido e não pode ser duplicado.");
+
             }
             else
             {
@@ -256,6 +262,11 @@ public class PedidoController : ControllerBase
                 _context.PedidoProdutos.Add(pedidoProduto);
             }
         }
+
+        if (pedido.Status == PedidoStatus.Fechado.ToString())
+            return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
+
+
 
         _context.SaveChanges();
 
@@ -431,9 +442,15 @@ public class PedidoController : ControllerBase
             if (produtoDto.Quantidade <= 0)
                 return BadRequest($"A quantidade para o produto com ID {produtoDto.ProdutoId} deve ser maior que zero.");
 
-            var produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
-            if (produto == null)
-                return NotFound($"Produto com ID {produtoDto.ProdutoId} não encontrado.");
+            ProdutoEntity produto;
+            try
+            {
+                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+            }
+            catch (PedidoException ex)
+            {
+                return NotFound(ex.Message);
+            }
 
             var pedidoProduto = _context.PedidoProdutos
                 .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoDto.ProdutoId);
