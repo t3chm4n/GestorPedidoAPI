@@ -22,10 +22,5 @@ public class AppDbContext : DbContext
             .HasOne(pp => pp.Pedido)
             .WithMany(p => p.PedidoProdutos)
             .HasForeignKey(pp => pp.PedidoId);
-
-        modelBuilder.Entity<PedidoProduto>()
-            .HasOne(pp => pp.Produto)
-            .WithMany(p => p.PedidoProdutos)
-            .HasForeignKey(pp => pp.ProdutoId);
     }
 }

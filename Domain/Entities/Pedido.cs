@@ -1,10 +1,13 @@
-namespace GestorPedidoAPI.Domain.Entities;
+using GestorPedidoAPI.Domain.Enums;
 
-public class Pedido
+namespace GestorPedidoAPI.Domain.Entities
 {
-    public int Id { get; set; }
-    public DateTime DataCriacao { get; set; } = DateTime.Now;
-    public bool Fechado { get; set; } = false;
+    public class Pedido
+    {
+        public int Id { get; set; }
+        public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
+        public string Status { get; set; } = PedidoStatus.Aberto.ToString(); // Inicializa como "Aberto"
 
-    public ICollection<PedidoProduto> PedidoProdutos { get; set; } = new List<PedidoProduto>();
+        public ICollection<PedidoProduto> PedidoProdutos { get; set; } = new List<PedidoProduto>();
+    }
 }

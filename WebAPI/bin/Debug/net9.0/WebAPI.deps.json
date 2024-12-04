@@ -14,7 +14,8 @@
           "Microsoft.AspNetCore.OpenApi": "9.0.0",
           "Microsoft.EntityFrameworkCore": "9.0.0",
           "Microsoft.EntityFrameworkCore.InMemory": "9.0.0",
-          "Swashbuckle.AspNetCore": "7.1.0"
+          "Swashbuckle.AspNetCore": "7.1.0",
+          "Swashbuckle.AspNetCore.Annotations": "7.1.0"
         },
         "runtime": {
           "WebAPI.dll": {}
@@ -123,6 +124,17 @@
           "Swashbuckle.AspNetCore.SwaggerUI": "7.1.0"
         }
       },
+      "Swashbuckle.AspNetCore.Annotations/7.1.0": {
+        "dependencies": {
+          "Swashbuckle.AspNetCore.SwaggerGen": "7.1.0"
+        },
+        "runtime": {
+          "lib/net9.0/Swashbuckle.AspNetCore.Annotations.dll": {
+            "assemblyVersion": "7.1.0.0",
+            "fileVersion": "7.1.0.916"
+          }
+        }
+      },
       "Swashbuckle.AspNetCore.Swagger/7.1.0": {
         "dependencies": {
           "Microsoft.OpenApi": "1.6.22"
@@ -154,6 +166,9 @@
         }
       },
       "Application/1.0.0": {
+        "dependencies": {
+          "Domain": "1.0.0"
+        },
         "runtime": {
           "Application.dll": {
             "assemblyVersion": "1.0.0",
@@ -301,6 +316,13 @@
       "sha512": "sha512-PpKwEZNCciDPczWPnuqaTVuN5jR/fG2RubQYgKHVWY2KB+TpvKkOrQJoF51S1yMJxygaofCM3BXlLy4PK/o8WA==",
       "path": "swashbuckle.aspnetcore/7.1.0",
       "hashPath": "swashbuckle.aspnetcore.7.1.0.nupkg.sha512"
+    },
+    "Swashbuckle.AspNetCore.Annotations/7.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Lesyci+wHqJxxPyQx9maLeYoZWJkXN5AXAsxWvhEIWCy41x5PTF7kv+/VPT+4fCmLmjzpCZYR+5Zgq9e9bcaGA==",
+      "path": "swashbuckle.aspnetcore.annotations/7.1.0",
+      "hashPath": "swashbuckle.aspnetcore.annotations.7.1.0.nupkg.sha512"
     },
     "Swashbuckle.AspNetCore.Swagger/7.1.0": {
       "type": "package",

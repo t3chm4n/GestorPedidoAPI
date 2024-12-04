@@ -11,6 +11,7 @@ C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.InMemory.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Microsoft.OpenApi.dll
+C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Annotations.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\GestorPedidoAPI\WebAPI\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll

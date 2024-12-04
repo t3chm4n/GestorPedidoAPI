@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj": {}
+    "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj": {}
   },
   "projects": {
     "C:\\GestorPedidoAPI\\Application\\Application.csproj": {
@@ -25,7 +25,11 @@
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\GestorPedidoAPI\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\GestorPedidoAPI\\Domain\\Domain.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -195,14 +199,14 @@
         }
       }
     },
-    "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj": {
+    "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj",
+        "projectUniqueName": "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj",
         "projectName": "WebAPI",
-        "projectPath": "C:\\GestorPedidoAPI\\WebAPI\\WebAPI.csproj",
+        "projectPath": "C:\\GestorPedidoAPI\\webapi\\WebAPI.csproj",
         "packagesPath": "C:\\Users\\t3chm\\.nuget\\packages\\",
-        "outputPath": "C:\\GestorPedidoAPI\\WebAPI\\obj\\",
+        "outputPath": "C:\\GestorPedidoAPI\\webapi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\t3chm\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -258,6 +262,10 @@
               "version": "[9.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[7.1.0, )"
+            },
+            "Swashbuckle.AspNetCore.Annotations": {
               "target": "Package",
               "version": "[7.1.0, )"
             }
