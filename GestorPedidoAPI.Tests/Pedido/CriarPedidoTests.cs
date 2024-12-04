@@ -79,7 +79,7 @@ public class CriarPedidoTests : TestBase
         {
             Produtos = new List<ProdutoPedidoDto>
             {
-                new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 0 } // Quantidade inválida
+                new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 0 }, // Quantidade inválida
             }
         };
 
@@ -90,6 +90,22 @@ public class CriarPedidoTests : TestBase
         Assert.NotNull(result);
         Assert.Equal(400, result?.StatusCode);
         Assert.Equal("Quantidade inválida para o produto com ID 1. Deve ser maior que zero.", result?.Value);
+
+        criarPedidoDto = new CriarPedidoDto
+        {
+            Produtos = new List<ProdutoPedidoDto>
+            {
+                new ProdutoPedidoDto { ProdutoId = 2, Quantidade = -1 }, // Quantidade inválida
+            }
+        };
+
+        // Act
+        result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(400, result?.StatusCode);
+        Assert.Equal("Quantidade inválida para o produto com ID 2. Deve ser maior que zero.", result?.Value);
     }
 
     [Fact]

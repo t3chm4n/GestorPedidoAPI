@@ -243,11 +243,7 @@ public class PedidoController : ControllerBase
 
             if (pedidoProdutoExistente != null)
             {
-                // Atualize a quantidade se já estiver associado
-                // pedidoProdutoExistente.Quantidade = produtoDto.Quantidade;
-                // TODO: lançar exceção de produto já existente
                 return BadRequest($"Produto com ID {produtoDto.ProdutoId} já existe no pedido e não pode ser duplicado.");
-
             }
             else
             {
@@ -265,8 +261,6 @@ public class PedidoController : ControllerBase
 
         if (pedido.Status == PedidoStatus.Fechado.ToString())
             return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
-
-
 
         _context.SaveChanges();
 
