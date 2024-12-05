@@ -305,36 +305,47 @@ public class PedidoController : ControllerBase
 
     public IActionResult RemoverProduto(int pedidoId, int produtoId)
     {
-        PedidoEntity pedido;
         try
         {
-            pedido = ObterPedidoComValidacao(pedidoId);
+            // Obtém o pedido e valida
+            var pedido = ObterPedidoComValidacao(pedidoId);
+
+            if (pedido.Status == PedidoStatus.Fechado.ToString())
+            {
+                throw new PedidoException($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
+            }
+
+            // Obtém o produto associado ao pedido
+            var pedidoProduto = _context.PedidoProdutos
+                .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoId);
+
+            if (pedidoProduto == null)
+            {
+                throw new PedidoException($"Produto com ID {produtoId} não encontrado no pedido {pedidoId}.");
+            }
+
+            // Verifica se o pedido ficará sem produtos após a remoção
+            var totalProdutosNoPedido = _context.PedidoProdutos.Count(pp => pp.PedidoId == pedidoId);
+            if (totalProdutosNoPedido <= 1) // Último produto
+            {
+                throw new PedidoException($"O pedido com ID {pedidoId} não pode ficar sem produtos.");
+            }
+
+            // Remove o produto do pedido
+            _context.PedidoProdutos.Remove(pedidoProduto);
+            _context.SaveChanges();
+
+            return Ok($"Produto com ID {produtoId} removido completamente do pedido {pedidoId}.");
         }
         catch (PedidoException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
-
-        if (pedido.Status == PedidoStatus.Fechado.ToString())
-            return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
-
-        var pedidoProduto = _context.PedidoProdutos
-            .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoId);
-
-        if (pedidoProduto == null)
-            return NotFound($"Produto com ID {produtoId} não encontrado no pedido {pedidoId}.");
-
-        // Verificar se o pedido ficará sem produtos após a remoção
-        var totalProdutosNoPedido = _context.PedidoProdutos.Count(pp => pp.PedidoId == pedidoId);
-        if (totalProdutosNoPedido <= 1) // Último produto
-            return BadRequest($"O pedido com ID {pedidoId} não pode ficar sem produtos.");
-
-        _context.PedidoProdutos.Remove(pedidoProduto);
-        _context.SaveChanges();
-
-        return Ok($"Produto com ID {produtoId} removido completamente do pedido {pedidoId}.");
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
-
 
     /// <summary>
     /// Atualiza a quantidade de um ou mais produtos existentes em um pedido.
@@ -400,61 +411,71 @@ public class PedidoController : ControllerBase
     [SwaggerResponse(404, "Pedido ou produto não encontrado.")]
     public IActionResult AtualizarProduto(int pedidoId, [FromBody] List<ProdutoPedidoDto> produtosDto)
     {
-        if (produtosDto == null || !produtosDto.Any())
-            return BadRequest("A lista de produtos para atualização não pode estar vazia.");
-
-        // Verifica se há duplicatas no request
-        var duplicados = produtosDto
-            .GroupBy(p => p.ProdutoId)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .ToList();
-
-        if (duplicados.Any())
-            return BadRequest($"Produtos duplicados no request: {string.Join(", ", duplicados)}.");
-
-        PedidoEntity pedido;
         try
         {
-            pedido = ObterPedidoComValidacao(pedidoId);
+            // Valida a lista de produtos
+            ValidarListaDeProdutos(produtosDto);
+
+            // Verifica se há duplicatas no request
+            var duplicados = produtosDto
+                .GroupBy(p => p.ProdutoId)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicados.Any())
+            {
+                throw new PedidoException($"Produtos duplicados no request: {string.Join(", ", duplicados)}.");
+            }
+
+            // Obtém o pedido e valida
+            var pedido = ObterPedidoComValidacao(pedidoId);
+
+            // Verifica se o pedido está fechado
+            if (pedido.Status == PedidoStatus.Fechado.ToString())
+            {
+                throw new PedidoException($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
+            }
+
+            foreach (var produtoDto in produtosDto)
+            {
+                // Valida a quantidade do produto
+                if (produtoDto.Quantidade <= 0)
+                {
+                    throw new PedidoException($"A quantidade para o produto com ID {produtoDto.ProdutoId} deve ser maior que zero.");
+                }
+
+                // Obtém o produto e valida
+                var produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+
+                // Verifica se o produto está associado ao pedido
+                var pedidoProduto = _context.PedidoProdutos
+                    .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoDto.ProdutoId);
+
+                if (pedidoProduto == null)
+                {
+                    throw new PedidoException($"Produto com ID {produtoDto.ProdutoId} não encontrado no pedido com ID {pedidoId}.");
+                }
+
+                // Atualiza a quantidade
+                pedidoProduto.Quantidade = produtoDto.Quantidade;
+            }
+
+            // Salva as alterações no banco de dados
+            _context.SaveChanges();
+
+            return Ok($"Produtos atualizados com sucesso no pedido {pedidoId}.");
         }
         catch (PedidoException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
-
-        // Verifica se o pedido está fechado
-        if (pedido.Status == PedidoStatus.Fechado.ToString())
-            return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
-
-        foreach (var produtoDto in produtosDto)
+        catch (Exception ex)
         {
-            if (produtoDto.Quantidade <= 0)
-                return BadRequest($"A quantidade para o produto com ID {produtoDto.ProdutoId} deve ser maior que zero.");
-
-            ProdutoEntity produto;
-            try
-            {
-                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
-            }
-            catch (PedidoException ex)
-            {
-                return NotFound(ex.Message);
-            }
-
-            var pedidoProduto = _context.PedidoProdutos
-                .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoDto.ProdutoId);
-
-            if (pedidoProduto == null)
-                return NotFound($"Produto com ID {produtoDto.ProdutoId} não encontrado no pedido com ID {pedidoId}.");
-
-            // Atualiza a quantidade
-            pedidoProduto.Quantidade = produtoDto.Quantidade;
+            return StatusCode(500, $"Erro interno: {ex.Message}");
         }
-
-        _context.SaveChanges();
-        return Ok($"Produtos atualizados com sucesso no pedido {pedidoId}.");
     }
+
 
     /// <summary>
     /// Fecha um pedido existente.
@@ -500,23 +521,37 @@ public class PedidoController : ControllerBase
     [SwaggerResponse(404, "Pedido não encontrado.")]
     public IActionResult FecharPedido(int pedidoId)
     {
-        PedidoEntity pedido;
         try
         {
-            pedido = ObterPedidoComValidacao(pedidoId);
+            // Obtém o pedido e valida
+            var pedido = ObterPedidoComValidacao(pedidoId);
+
+            // Verifica se o pedido contém produtos
+            if (!pedido.PedidoProdutos.Any())
+            {
+                throw new PedidoException($"Pedido com ID {pedidoId} não pode ser fechado sem produtos.");
+            }
+
+            // Verifica se o pedido já está fechado
+            if (pedido.Status == PedidoStatus.Fechado.ToString())
+            {
+                throw new PedidoException($"Pedido com ID {pedidoId} já está fechado.");
+            }
+
+            // Atualiza o status do pedido para fechado
+            pedido.Status = PedidoStatus.Fechado.ToString();
+            _context.SaveChanges();
+
+            return Ok($"Pedido com ID {pedidoId} fechado com sucesso.");
         }
         catch (PedidoException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
-
-        if (!pedido.PedidoProdutos.Any())
-            throw new PedidoException($"Pedido com ID {pedidoId} não pode ser fechado sem produtos.");
-
-        pedido.Status = PedidoStatus.Fechado.ToString();
-        _context.SaveChanges();
-
-        return Ok($"Pedido com ID {pedidoId} fechado com sucesso.");
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -526,52 +561,48 @@ public class PedidoController : ControllerBase
     /// <response code="200">Pedido reaberto com sucesso.</response>
     /// <response code="400">O pedido já está aberto e não pode ser reaberto.</response>
     /// <response code="404">Pedido não encontrado para o ID fornecido.</response>
-    [HttpPatch("{pedidoId}/reabrir")]
+    [HttpPost("{pedidoId}/reabrir")]
     [SwaggerOperation(
-        Summary = "Reabre um pedido fechado",
-        Description = @"
-            Permite reabrir um pedido que foi fechado, alterando seu status para 'Aberto'.
-
-            Regras de validação:
-            - O pedido deve existir na base de dados.
-            - O pedido deve estar com o status 'Fechado' para ser reaberto.
-
-            Exemplo de requisição:
-            PATCH /api/pedido/{pedidoId}/reabrir
-
-            Possíveis respostas:
-            - 200: Pedido reaberto com sucesso.
-            - 400: Pedido já está aberto.
-            - 404: Pedido não encontrado."
-    )]
+    Summary = "Reabre um pedido fechado",
+    Description = @"
+        Reabre um pedido com status 'Fechado', validando as seguintes condições:
+        - O pedido deve existir.
+        - O pedido deve estar com o status 'Fechado'.
+        - Não é possível reabrir pedidos já abertos.
+        ",
+    Tags = new[] { "Pedidos" }
+)]
     [SwaggerResponse(200, "Pedido reaberto com sucesso.")]
-    [SwaggerResponse(400, "O pedido já está aberto e não pode ser reaberto.")]
-    [SwaggerResponse(404, "Pedido não encontrado.")]
+    [SwaggerResponse(400, "Pedido não encontrado ou não está fechado")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult ReabrirPedido(int pedidoId)
     {
-        var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == pedidoId);
-
-        if (pedido == null)
+        try
         {
-            return NotFound($"Pedido com ID {pedidoId} não encontrado.");
-        }
+            // Obtém o pedido e valida
+            var pedido = ObterPedidoComValidacao(pedidoId);
 
-        if (pedido.Status == PedidoStatus.Aberto.ToString())
+            // Verifica se o pedido está fechado
+            if (pedido.Status != PedidoStatus.Fechado.ToString())
+            {
+                throw new PedidoException($"Somente pedidos com status 'Fechado' podem ser reabertos. Status atual: {pedido.Status}.");
+            }
+
+            // Atualiza o status do pedido para aberto
+            pedido.Status = PedidoStatus.Aberto.ToString();
+            _context.SaveChanges();
+
+            return Ok($"Pedido com ID {pedidoId} reaberto com sucesso.");
+        }
+        catch (PedidoException ex)
         {
-            return BadRequest($"Pedido com ID {pedidoId} já está aberto e não pode ser reaberto.");
+            return BadRequest(ex.Message);
         }
-
-        if (pedido.Status != PedidoStatus.Fechado.ToString())
+        catch (Exception ex)
         {
-            return BadRequest($"Somente pedidos com status 'Fechado' podem ser reabertos. Status atual: {pedido.Status}.");
+            return StatusCode(500, $"Erro interno: {ex.Message}");
         }
-
-        pedido.Status = PedidoStatus.Aberto.ToString();
-        _context.SaveChanges();
-
-        return Ok($"Pedido com ID {pedidoId} reaberto com sucesso.");
     }
-
 
     /// <summary>
     /// Lista pedidos com paginação.
@@ -619,61 +650,77 @@ public class PedidoController : ControllerBase
     /// <response code="400">Parâmetros de paginação inválidos (valores menores que 1).</response>
     [HttpGet("listar")]
     [SwaggerOperation(
-        Summary = "Lista pedidos com paginação",
-        Description = @"
-            Retorna uma lista de pedidos com suporte a paginação.
+    Summary = "Lista pedidos com paginação",
+    Description = @"
+        Retorna uma lista de pedidos com suporte a paginação.
 
-            Regras de validação:
-            - O número da página (`page`) deve ser maior ou igual a 1.
-            - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
+        Regras de validação:
+        - O número da página (`page`) deve ser maior ou igual a 1.
+        - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
 
-            Exemplo de requisição:
-            GET /api/pedido/listar?page=1&pageSize=10"
+        Exemplo de requisição:
+        GET /api/pedido/listar?page=1&pageSize=10"
     )]
     [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<PedidoDto>))]
     [SwaggerResponse(400, "Parâmetros de paginação inválidos.")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult ListarPedidosPaginados([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        if (page < 1 || pageSize < 1)
+        try
         {
-            return BadRequest("Os valores de página e tamanho devem ser maiores que zero.");
-        }
-
-        var query = _context.Pedidos
-            .Include(p => p.PedidoProdutos)
-            .ThenInclude(pp => pp.Produto)
-            .OrderBy(p => p.Id);
-
-        var totalItems = query.Count();
-
-        var pedidos = query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList()
-            .Select(p => new
+            // Valida os parâmetros de paginação
+            if (page < 1 || pageSize < 1)
             {
-                p.Id,
-                p.DataCriacao,
-                Status = Enum.TryParse<PedidoStatus>(p.Status, out var status) ? status : PedidoStatus.Desconhecido,
-                Produtos = p.PedidoProdutos.Select(pp => new
+                throw new PedidoException("Os valores de página e tamanho devem ser maiores que zero.");
+            }
+
+            // Consulta com paginação e ordenação
+            var query = _context.Pedidos
+                .Include(p => p.PedidoProdutos)
+                .ThenInclude(pp => pp.Produto)
+                .OrderBy(p => p.Id);
+
+            var totalItems = query.Count();
+
+            var pedidos = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList()
+                .Select(p => new
                 {
-                    pp.ProdutoId,
-                    Nome = pp.Produto?.Nome ?? "Produto não especificado",
-                    Preco = pp.Produto?.Preco ?? 0m,
-                    pp.Quantidade
-                })
-            });
+                    p.Id,
+                    p.DataCriacao,
+                    Status = Enum.TryParse<PedidoStatus>(p.Status, out var status) ? status : PedidoStatus.Desconhecido,
+                    Produtos = p.PedidoProdutos.Select(pp => new
+                    {
+                        pp.ProdutoId,
+                        Nome = pp.Produto?.Nome ?? "Produto não especificado",
+                        Preco = pp.Produto?.Preco ?? 0m,
+                        pp.Quantidade
+                    })
+                });
 
-        var response = new PaginacaoResponse<object>
+            // Criação do objeto de resposta paginada
+            var response = new PaginacaoResponse<object>
+            {
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                CurrentPage = page,
+                Items = pedidos
+            };
+
+            return Ok(response);
+        }
+        catch (PedidoException ex)
         {
-            TotalItems = totalItems,
-            TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
-            CurrentPage = page,
-            Items = pedidos
-        };
-
-        return Ok(response);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
+
 
     /// <summary>
     /// Lista pedidos paginados com base no status especificado.
@@ -723,75 +770,90 @@ public class PedidoController : ControllerBase
     /// <response code="400">Parâmetros de entrada inválidos ou status fornecido inválido.</response>
     [HttpGet("filtrar-status")]
     [SwaggerOperation(
-        Summary = "Lista pedidos por status com paginação",
-        Description = @"
-            Retorna uma lista de pedidos com suporte a paginação, filtrando pelo status ('Aberto' ou 'Fechado').
+    Summary = "Lista pedidos por status com paginação",
+    Description = @"
+        Retorna uma lista de pedidos com suporte a paginação, filtrando pelo status ('Aberto' ou 'Fechado').
 
-            Regras de validação:
-            - O número da página (`page`) deve ser maior ou igual a 1.
-            - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
-            - O parâmetro `status` deve existir no banco de dados. Se omitido, retorna todos os pedidos.
+        Regras de validação:
+        - O número da página (`page`) deve ser maior ou igual a 1.
+        - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
+        - O parâmetro `status` deve existir no banco de dados. Se omitido, retorna todos os pedidos.
 
-            Exemplo de requisição:
-            GET /api/pedido/filtrar-status?page=1&pageSize=10&status=Aberto"
-    )]
+        Exemplo de requisição:
+        GET /api/pedido/filtrar-status?page=1&pageSize=10&status=Aberto"
+)]
     [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<object>))]
     [SwaggerResponse(400, "Parâmetros de entrada inválidos ou status fornecido inválido.")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult ListarPedidosPaginadosEPorStatus([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
     {
-        if (page < 1 || pageSize < 1)
+        try
         {
-            return BadRequest("Página e tamanho devem ser maiores que zero.");
-        }
-
-        // Cast explícito para IQueryable<Pedido> para evitar conflitos de tipo
-        var query = _context.Pedidos
-            .Include(p => p.PedidoProdutos)
-            .ThenInclude(pp => pp.Produto)
-            .AsQueryable(); // Adicionado .AsQueryable() para evitar conflitos de tipo
-
-        // Filtrar por status se fornecido
-        if (status != null)
-        {
-            if (Enum.TryParse<PedidoStatus>(status, true, out var parsedStatus))
+            // Valida os parâmetros de paginação
+            if (page < 1 || pageSize < 1)
             {
-                query = query.Where(p => p.Status.Equals(parsedStatus.ToString(), StringComparison.OrdinalIgnoreCase));
+                throw new PedidoException("Página e tamanho devem ser maiores que zero.");
             }
-            else
-            {
-                return BadRequest("Status deve ser um dos valores definidos no enumerador PedidoStatus.");
-            }
-        }
 
-        var totalItems = query.Count();
-        var pedidos = query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList()
-            .Select(p => new
+            // Cast explícito para IQueryable<Pedido>
+            var query = _context.Pedidos
+                .Include(p => p.PedidoProdutos)
+                .ThenInclude(pp => pp.Produto)
+                .AsQueryable();
+
+            // Filtrar por status se fornecido
+            if (!string.IsNullOrEmpty(status))
             {
-                p.Id,
-                p.DataCriacao,
-                Status = Enum.TryParse<PedidoStatus>(p.Status, out var pedidoStatus) ? pedidoStatus : PedidoStatus.Desconhecido,
-                Produtos = p.PedidoProdutos.Select(pp => new
+                if (Enum.TryParse<PedidoStatus>(status, true, out var parsedStatus))
                 {
-                    pp.ProdutoId,
-                    Nome = pp.Produto?.Nome ?? "Produto não especificado",
-                    Preco = pp.Produto?.Preco ?? 0m,
-                    pp.Quantidade
-                })
-            });
+                    query = query.Where(p => p.Status.Equals(parsedStatus.ToString(), StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    throw new PedidoException("Status deve ser um dos valores definidos no enumerador PedidoStatus.");
+                }
+            }
 
-        var response = new PaginacaoResponse<object>
+            var totalItems = query.Count();
+
+            var pedidos = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList()
+                .Select(p => new
+                {
+                    p.Id,
+                    p.DataCriacao,
+                    Status = Enum.TryParse<PedidoStatus>(p.Status, out var pedidoStatus) ? pedidoStatus : PedidoStatus.Desconhecido,
+                    Produtos = p.PedidoProdutos.Select(pp => new
+                    {
+                        pp.ProdutoId,
+                        Nome = pp.Produto?.Nome ?? "Produto não especificado",
+                        Preco = pp.Produto?.Preco ?? 0m,
+                        pp.Quantidade
+                    })
+                });
+
+            var response = new PaginacaoResponse<object>
+            {
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
+                CurrentPage = page,
+                Items = pedidos
+            };
+
+            return Ok(response);
+        }
+        catch (PedidoException ex)
         {
-            TotalItems = totalItems,
-            TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
-            CurrentPage = page,
-            Items = pedidos
-        };
-
-        return Ok(response);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
+
 
     /// <summary>
     /// Obtém os detalhes de um pedido pelo ID.
@@ -837,46 +899,52 @@ public class PedidoController : ControllerBase
     /// <response code="404">Pedido não encontrado para o ID fornecido.</response>
     [HttpGet("{pedidoId}/detalhar")]
     [SwaggerOperation(
-        Summary = "Detalha um pedido",
-        Description = @"
-        Retorna os dados de um pedido específico, incluindo seus produtos.
+    Summary = "Detalha informações de um pedido",
+    Description = @"
+        Retorna os detalhes de um pedido específico, incluindo seus produtos.
 
         Regras de validação:
-        - O `pedidoId` deve corresponder a um pedido existente no sistema.
-        - Caso o pedido não seja encontrado, retorna um código HTTP 404.
+        - O pedido deve existir no banco de dados.
 
         Exemplo de requisição:
         GET /api/pedido/{pedidoId}/detalhar"
-    )]
-    [SwaggerResponse(200, "Pedido detalhado com sucesso.", typeof(PedidoDto))]
+)]
+    [SwaggerResponse(200, "Detalhes do pedido retornados com sucesso.", typeof(PedidoDto))]
     [SwaggerResponse(404, "Pedido não encontrado.")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult DetalharPedido(int pedidoId)
     {
-        var pedido = _context.Pedidos
-            .Include(p => p.PedidoProdutos)
-            .ThenInclude(pp => pp.Produto)
-            .FirstOrDefault(p => p.Id == pedidoId);
-
-        if (pedido == null)
+        try
         {
-            return NotFound($"Pedido com ID {pedidoId} não encontrado.");
-        }
+            // Obtém e valida o pedido
+            var pedido = ObterPedidoComValidacao(pedidoId);
 
-        var pedidoDto = new PedidoDto
-        {
-            Id = pedido.Id,
-            DataCriacao = pedido.DataCriacao,
-            Status = Enum.TryParse<PedidoStatus>(pedido.Status, out var status) ? status : PedidoStatus.Desconhecido,
-            Produtos = pedido.PedidoProdutos.Select(pp => new PedidoProdutoDto
+            // Monta o DTO com os detalhes do pedido
+            var pedidoDto = new PedidoDto
             {
-                ProdutoId = pp.ProdutoId,
-                Nome = pp.Produto.Nome,
-                Preco = pp.Produto.Preco,
-                Quantidade = pp.Quantidade
-            }).ToList()
-        };
+                Id = pedido.Id,
+                DataCriacao = pedido.DataCriacao,
+                Status = Enum.TryParse<PedidoStatus>(pedido.Status, out var status) ? status : PedidoStatus.Desconhecido,
+                Produtos = pedido.PedidoProdutos.Select(pp => new PedidoProdutoDto
+                {
+                    ProdutoId = pp.ProdutoId,
+                    Nome = pp.Produto.Nome,
+                    Preco = pp.Produto.Preco,
+                    Quantidade = pp.Quantidade
+                }).ToList()
+            };
 
-        return Ok(pedidoDto);
+            return Ok(pedidoDto);
+        }
+        catch (PedidoException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
+
 
 }

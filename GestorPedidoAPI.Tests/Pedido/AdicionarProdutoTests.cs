@@ -68,7 +68,7 @@ public class AdicionarProdutoTests : TestBase
     }
 
     [Fact]
-    public void AdicionarProduto_ProdutoNaoEncontrado_DeveRetornarNotFound()
+    public void AdicionarProduto_ProdutoNaoEncontrado_DeveRetornarBadRequest()
     {
         // Arrange
         var pedidoId = 1;
@@ -87,7 +87,7 @@ public class AdicionarProdutoTests : TestBase
     }
 
     [Fact]
-    public void AdicionarProduto_PedidoNaoEncontrado_DeveRetornarNotFound()
+    public void AdicionarProduto_PedidoNaoEncontrado_DeveRetornarBadRequest()
     {
         // Arrange
         var pedidoId = 99; // Pedido inexistente

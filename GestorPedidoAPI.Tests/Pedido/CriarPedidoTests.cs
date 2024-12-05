@@ -45,7 +45,7 @@ public class CriarPedidoTests : TestBase
     }
 
     [Fact]
-    public void CriarPedido_DeveRetornarNotFound_SeProdutoNaoExistir()
+    public void CriarPedido_DeveRetornarBadRequest_SeProdutoNaoExistir()
     {
         // Arrange
         var criarPedidoDto = new CriarPedidoDto

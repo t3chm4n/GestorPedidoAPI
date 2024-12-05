@@ -77,7 +77,7 @@ public class AtualizarProdutoTests : TestBase
     }
 
     [Fact]
-    public void AtualizarProduto_PedidoNaoEncontrado_DeveRetornarNotFound()
+    public void AtualizarProduto_PedidoNaoEncontrado_DeveRetornarBadRequest()
     {
         // Arrange
         var pedidoId = 99; // Pedido inexistente
@@ -87,11 +87,11 @@ public class AtualizarProdutoTests : TestBase
         };
 
         // Act
-        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(404, result.StatusCode);
+        Assert.Equal(400, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal($"Pedido com ID {pedidoId} não encontrado.", result.Value.ToString());
     }
@@ -114,5 +114,39 @@ public class AtualizarProdutoTests : TestBase
         Assert.Equal(400, result.StatusCode);
         Assert.NotNull(result.Value);
         Assert.Equal("A quantidade para o produto com ID 1 deve ser maior que zero.", result.Value.ToString());
+    }
+
+    [Fact]
+    public void AtualizarProduto_ListaProdutosVazia_DeveRetornarBadRequest()
+    {
+        // Arrange
+        var pedidoId = 1;
+        var produtosDto = new List<ProdutoPedidoDto>(); // Lista vazia
+
+        // Act
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(400, result.StatusCode);
+        Assert.NotNull(result.Value);
+        Assert.Equal("A lista de produtos não pode estar vazia.", result.Value.ToString());
+    }
+
+    [Fact]
+    public void AtualizarProduto_ListaProdutosNula_DeveRetornarBadRequest()
+    {
+        // Arrange
+        var pedidoId = 1;
+        List<ProdutoPedidoDto>? produtosDto = null; // Lista nula
+
+        // Act
+        var result = PedidoController.AtualizarProduto(pedidoId, produtosDto!) as BadRequestObjectResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(400, result.StatusCode);
+        Assert.NotNull(result.Value);
+        Assert.Equal("A lista de produtos não pode estar vazia.", result.Value.ToString());
     }
 }

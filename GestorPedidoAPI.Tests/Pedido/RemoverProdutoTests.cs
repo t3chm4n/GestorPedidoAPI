@@ -68,18 +68,18 @@ public class RemoverProdutoTests : TestBase
 
 
     [Fact]
-    public void RemoverProduto_ProdutoNaoEncontrado_DeveRetornarNotFound()
+    public void RemoverProduto_ProdutoNaoEncontrado_DeveRetornarBadRequest()
     {
         // Arrange
         var pedidoId = 1;
         var produtoId = 99; // Produto inexistente
 
         // Act
-        var result = PedidoController.RemoverProduto(pedidoId, produtoId) as NotFoundObjectResult;
+        var result = PedidoController.RemoverProduto(pedidoId, produtoId) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(404, result?.StatusCode);
+        Assert.Equal(400, result?.StatusCode);
         Assert.Equal($"Produto com ID {produtoId} não encontrado no pedido {pedidoId}.", result?.Value);
     }
 }

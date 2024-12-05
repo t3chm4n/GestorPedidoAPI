@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GestorPedidoAPI.Tests.Base;
 using GestorPedidoAPI.Domain.Enums;
+using GestorPedidoAPI.WebAPI.Controllers;
 
 namespace GestorPedidoAPI.Tests.Pedido;
 
@@ -27,10 +28,10 @@ public class ReabrirPedidoTests : TestBase
     }
 
     [Fact]
-    public void ReabrirPedido_PedidoJaAberto_DeveRetornarBadRequest()
+    public void ReabrirPedido_PedidoNaoEncontrado_DeveRetornarBadRequest()
     {
         // Arrange
-        var pedidoId = 1; // Pedido já aberto no SeedDatabase
+        var pedidoId = 99; // Pedido inexistente
 
         // Act
         var result = PedidoController.ReabrirPedido(pedidoId) as BadRequestObjectResult;
@@ -38,21 +39,6 @@ public class ReabrirPedidoTests : TestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(400, result?.StatusCode);
-        Assert.Equal($"Pedido com ID {pedidoId} já está aberto e não pode ser reaberto.", result?.Value);
-    }
-
-    [Fact]
-    public void ReabrirPedido_PedidoNaoEncontrado_DeveRetornarNotFound()
-    {
-        // Arrange
-        var pedidoId = 99; // Pedido inexistente
-
-        // Act
-        var result = PedidoController.ReabrirPedido(pedidoId) as NotFoundObjectResult;
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(404, result?.StatusCode);
         Assert.Equal($"Pedido com ID {pedidoId} não encontrado.", result?.Value);
     }
 

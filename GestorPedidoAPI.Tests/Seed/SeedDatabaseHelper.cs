@@ -35,7 +35,8 @@ public static class SeedDatabaseHelper
             new PedidoProduto { PedidoId = 1, ProdutoId = 1, Quantidade = 2 },
             new PedidoProduto { PedidoId = 1, ProdutoId = 2, Quantidade = 1 },
             new PedidoProduto { PedidoId = 2, ProdutoId = 2, Quantidade = 3 },
-            new PedidoProduto { PedidoId = 2, ProdutoId = 3, Quantidade = 1 }
+            new PedidoProduto { PedidoId = 2, ProdutoId = 3, Quantidade = 1 },
+            new PedidoProduto { PedidoId = 3, ProdutoId = 1, Quantidade = 1 }
         };
 
         // Adiciona ao contexto
