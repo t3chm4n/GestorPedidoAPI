@@ -110,10 +110,14 @@ public class PedidoController : ControllerBase
             }
 
             // Verifica se o produto existe no banco de dados
-            var produto = _context.Produtos.Find(produtoDto.ProdutoId);
-            if (produto == null)
+            ProdutoEntity produto;
+            try
             {
-                return BadRequest($"Produto com ID {produtoDto.ProdutoId} não encontrado.");
+                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+            }
+            catch (PedidoException ex)
+            {
+                return NotFound(ex.Message);
             }
 
             // Valida se a quantidade é maior que zero
@@ -135,23 +139,7 @@ public class PedidoController : ControllerBase
         // Salva as alterações no banco de dados
         _context.SaveChanges();
 
-        // Converte para o DTO de resposta
-        var pedidoDto = new PedidoDto
-        {
-            Id = pedido.Id,
-            DataCriacao = pedido.DataCriacao,
-            Status = PedidoStatus.Aberto,
-            Produtos = criarPedidoDto.Produtos.Select(p => new PedidoProdutoDto
-            {
-                ProdutoId = p.ProdutoId,
-                Quantidade = p.Quantidade,
-                Nome = _context.Produtos.Find(p.ProdutoId)?.Nome ?? "Produto não especificado",
-                Preco = _context.Produtos.Find(p.ProdutoId)?.Preco ?? 0m
-            }).ToList()
-        };
-
-        // Retorna o pedido criado
-        return CreatedAtAction(nameof(DetalharPedido), new { pedidoId = pedido.Id }, pedidoDto);
+        return Ok($"Pedido com ID {pedido.Id} criado com sucesso.");
     }
 
     /// <summary>

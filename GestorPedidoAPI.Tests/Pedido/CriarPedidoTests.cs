@@ -13,26 +13,20 @@ public class CriarPedidoTests : TestBase
         var criarPedidoDto = new CriarPedidoDto
         {
             Produtos = new List<ProdutoPedidoDto>
-            {
-                new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 },
-                new ProdutoPedidoDto { ProdutoId = 2, Quantidade = 1 }
-            }
+        {
+            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 },
+            new ProdutoPedidoDto { ProdutoId = 2, Quantidade = 1 }
+        }
         };
 
         // Act
-        var result = PedidoController.CriarPedido(criarPedidoDto) as CreatedAtActionResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(201, result?.StatusCode);
-
-        var pedidoDto = result?.Value as PedidoDto;
-        Assert.NotNull(pedidoDto);
-        Assert.Equal(2, pedidoDto?.Produtos.Count());
-        Assert.Equal(1, pedidoDto?.Produtos.First().ProdutoId);
-        Assert.Equal(2, pedidoDto?.Produtos.First().Quantidade);
-        Assert.Equal(2, pedidoDto?.Produtos.Last().ProdutoId);
-        Assert.Equal(1, pedidoDto?.Produtos.Last().Quantidade);
+        Assert.Equal(200, result.StatusCode);
+        var mensagemRetornada = result?.Value?.ToString();
+        Assert.StartsWith("Pedido com ID ", mensagemRetornada);
     }
 
     [Fact]
@@ -51,7 +45,7 @@ public class CriarPedidoTests : TestBase
     }
 
     [Fact]
-    public void CriarPedido_DeveRetornarBadRequest_SeProdutoNaoExistir()
+    public void CriarPedido_DeveRetornarNotFound_SeProdutoNaoExistir()
     {
         // Arrange
         var criarPedidoDto = new CriarPedidoDto
@@ -63,11 +57,11 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as NotFoundObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(400, result?.StatusCode);
+        Assert.Equal(404, result?.StatusCode);
         Assert.Equal("Produto com ID 99 não encontrado.", result?.Value);
     }
 
