@@ -92,7 +92,7 @@ public class PedidoController : ControllerBase
     - Quantidade inválida.
     - Produtos duplicados.
     ")]
-    [SwaggerResponse(201, "Pedido criado com sucesso.", typeof(PedidoDto))]
+    [SwaggerResponse(201, "Pedido criado com sucesso.")]
     [SwaggerResponse(400, "Dados inválidos ou erro de validação.")]
     [SwaggerResponse(500, "Erro interno.")]
     public IActionResult CriarPedido([FromBody] CriarPedidoDto criarPedidoDto)
@@ -666,7 +666,7 @@ public class PedidoController : ControllerBase
 
         Exemplo de requisição:
         GET /api/pedido/filtrar-status?page=1&pageSize=10&status=Aberto"
-)]
+    )]
     [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<PedidoDto>))]
     [SwaggerResponse(400, "Parâmetros de entrada inválidos ou status fornecido inválido.")]
     [SwaggerResponse(500, "Erro interno.")]
@@ -709,7 +709,9 @@ public class PedidoController : ControllerBase
                 {
                     p.Id,
                     p.DataCriacao,
-                    Status = Enum.TryParse<PedidoStatus>(p.Status, out var pedidoStatus) ? pedidoStatus : PedidoStatus.Desconhecido,
+                    Status = Enum.TryParse<PedidoStatus>(p.Status, out var pedidoStatus)
+                        ? pedidoStatus.ToString() // Converte o enum para string (ex.: "Aberto" ou "Fechado")
+                        : PedidoStatus.Desconhecido.ToString(),
                     Produtos = p.PedidoProdutos.Select(pp => new
                     {
                         pp.ProdutoId,
@@ -809,7 +811,7 @@ public class PedidoController : ControllerBase
             {
                 Id = pedido.Id,
                 DataCriacao = pedido.DataCriacao,
-                Status = Enum.TryParse<PedidoStatus>(pedido.Status, out var status) ? status : PedidoStatus.Desconhecido,
+                Status = Enum.TryParse<PedidoStatus>(pedido.Status, out var status) ? status.ToString() : PedidoStatus.Desconhecido.ToString(),
                 Produtos = pedido.PedidoProdutos.Select(pp => new PedidoProdutoDto
                 {
                     ProdutoId = pp.ProdutoId,

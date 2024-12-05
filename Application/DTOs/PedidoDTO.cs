@@ -6,6 +6,6 @@ public class PedidoDto
 {
     public int Id { get; set; }
     public DateTime DataCriacao { get; set; }
-    public PedidoStatus Status { get; set; } // Atualiza para usar o enumerador
+    public string Status { get; set; } = string.Empty;
     public IEnumerable<PedidoProdutoDto> Produtos { get; set; } = new List<PedidoProdutoDto>();
 }
