@@ -209,6 +209,8 @@ public class PedidoController : ControllerBase
 
             // Obtém o pedido e valida se pode ser modificado
             var pedido = ObterPedidoComValidacao(pedidoId);
+
+            // Verifica se o pedido está fechado
             if (pedido.Status == PedidoStatus.Fechado.ToString())
             {
                 throw new PedidoException($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
@@ -702,7 +704,7 @@ public class PedidoController : ControllerBase
                 TotalItems = totalItems,
                 TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
                 CurrentPage = page,
-                Items = pedidos
+                Pedidos = pedidos
             };
 
             return Ok(response);
@@ -778,7 +780,7 @@ public class PedidoController : ControllerBase
         Exemplo de requisição:
         GET /api/pedido/filtrar-status?page=1&pageSize=10&status=Aberto"
 )]
-    [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<object>))]
+    [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<PedidoDto>))]
     [SwaggerResponse(400, "Parâmetros de entrada inválidos ou status fornecido inválido.")]
     [SwaggerResponse(500, "Erro interno.")]
     public IActionResult ListarPedidosPaginadosEPorStatus([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
@@ -835,7 +837,7 @@ public class PedidoController : ControllerBase
                 TotalItems = totalItems,
                 TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
                 CurrentPage = page,
-                Items = pedidos
+                Pedidos = pedidos
             };
 
             return Ok(response);

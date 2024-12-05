@@ -22,7 +22,7 @@ public class ListarPedidosTests : TestBase
 
         // Após Assert.NotNull, não é necessário usar ?. mais
         Assert.Equal(3, response.TotalItems);
-        Assert.Equal(3, response.Items.Count());
+        Assert.Equal(3, response.Pedidos.Count());
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class ListarPedidosTests : TestBase
 
         // Após Assert.NotNull, não é necessário usar ?. mais
         Assert.Equal(3, response.TotalItems);
-        Assert.Equal(2, response.Items.Count());
+        Assert.Equal(2, response.Pedidos.Count());
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class ListarPedidosTests : TestBase
         Assert.NotNull(response);
 
         // Após Assert.NotNull, não é necessário usar ?. mais
-        Assert.Empty(response.Items);
+        Assert.Empty(response.Pedidos);
         Assert.Equal(3, response.TotalItems);
     }
 

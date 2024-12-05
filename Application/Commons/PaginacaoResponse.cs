@@ -11,6 +11,6 @@ namespace GestorPedidoAPI.Application.Commons
         public int TotalItems { get; set; }
         public int TotalPages { get; set; }
         public int CurrentPage { get; set; }
-        public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
+        public IEnumerable<T> Pedidos { get; set; } = Enumerable.Empty<T>();
     }
 }
