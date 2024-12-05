@@ -23,11 +23,16 @@ public class PedidoController : ControllerBase
 
     private PedidoEntity ObterPedidoComValidacao(int pedidoId)
     {
-        var pedido = _context.Pedidos.FirstOrDefault(p => p.Id == pedidoId);
+        var pedido = _context.Pedidos
+            .Include(p => p.PedidoProdutos) // Carrega os produtos do pedido
+            .ThenInclude(pp => pp.Produto) // Carrega os detalhes de cada produto
+            .FirstOrDefault(p => p.Id == pedidoId);
+
         if (pedido == null)
         {
             throw new PedidoException($"Pedido com ID {pedidoId} não encontrado.");
         }
+
         return pedido;
     }
 
@@ -603,124 +608,6 @@ public class PedidoController : ControllerBase
     }
 
     /// <summary>
-    /// Lista pedidos com paginação.
-    /// </summary>
-    /// <param name="page">Número da página. Deve ser maior ou igual a 1. Valor padrão: 1.</param>
-    /// <param name="pageSize">Quantidade de itens por página. Deve ser maior ou igual a 1. Valor padrão: 10.</param>
-    /// <returns>Uma lista paginada de pedidos com os produtos associados.</returns>
-    /// <remarks>
-    /// Este endpoint retorna uma lista de pedidos com suporte a paginação. 
-    /// 
-    /// Regras de validação:
-    /// - O número da página (`page`) deve ser maior ou igual a 1.
-    /// - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
-    ///
-    /// Exemplo de requisição:
-    /// GET /api/pedido/listar?page=1&pageSize=10
-    ///
-    /// Exemplo de resposta:
-    /// {
-    ///   "totalItems": 35,
-    ///   "totalPages": 4,
-    ///   "currentPage": 1,
-    ///   "items": [
-    ///     {
-    ///       "id": 1,
-    ///       "dataCriacao": "2024-11-28T10:45:00Z",
-    ///       "status": "Aberto",
-    ///       "produtos": [
-    ///         {
-    ///           "produtoId": 1,
-    ///           "nome": "Produto A",
-    ///           "preco": 10.0,
-    ///           "quantidade": 2
-    ///         }
-    ///       ]
-    ///     }
-    ///   ]
-    /// }
-    ///
-    /// Possíveis respostas:
-    /// - 200: Retorna a lista de pedidos paginados.
-    /// - 400: Valores de `page` ou `pageSize` inválidos.
-    /// </remarks>
-    /// <response code="200">Lista de pedidos paginados retornada com sucesso.</response>
-    /// <response code="400">Parâmetros de paginação inválidos (valores menores que 1).</response>
-    [HttpGet("listar")]
-    [SwaggerOperation(
-    Summary = "Lista pedidos com paginação",
-    Description = @"
-        Retorna uma lista de pedidos com suporte a paginação.
-
-        Regras de validação:
-        - O número da página (`page`) deve ser maior ou igual a 1.
-        - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
-
-        Exemplo de requisição:
-        GET /api/pedido/listar?page=1&pageSize=10"
-    )]
-    [SwaggerResponse(200, "Lista de pedidos paginados retornada com sucesso.", typeof(PaginacaoResponse<PedidoDto>))]
-    [SwaggerResponse(400, "Parâmetros de paginação inválidos.")]
-    [SwaggerResponse(500, "Erro interno.")]
-    public IActionResult ListarPedidosPaginados([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-    {
-        try
-        {
-            // Valida os parâmetros de paginação
-            if (page < 1 || pageSize < 1)
-            {
-                throw new PedidoException("Os valores de página e tamanho devem ser maiores que zero.");
-            }
-
-            // Consulta com paginação e ordenação
-            var query = _context.Pedidos
-                .Include(p => p.PedidoProdutos)
-                .ThenInclude(pp => pp.Produto)
-                .OrderBy(p => p.Id);
-
-            var totalItems = query.Count();
-
-            var pedidos = query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList()
-                .Select(p => new
-                {
-                    p.Id,
-                    p.DataCriacao,
-                    Status = Enum.TryParse<PedidoStatus>(p.Status, out var status) ? status : PedidoStatus.Desconhecido,
-                    Produtos = p.PedidoProdutos.Select(pp => new
-                    {
-                        pp.ProdutoId,
-                        Nome = pp.Produto?.Nome ?? "Produto não especificado",
-                        Preco = pp.Produto?.Preco ?? 0m,
-                        pp.Quantidade
-                    })
-                });
-
-            // Criação do objeto de resposta paginada
-            var response = new PaginacaoResponse<object>
-            {
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize),
-                CurrentPage = page,
-                Pedidos = pedidos
-            };
-
-            return Ok(response);
-        }
-        catch (PedidoException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Erro interno: {ex.Message}");
-        }
-    }
-
-
-    /// <summary>
     /// Lista pedidos paginados com base no status especificado.
     /// </summary>
     /// <param name="page">Número da página. Deve ser maior ou igual a 1. Valor padrão: 1.</param>
@@ -766,16 +653,16 @@ public class PedidoController : ControllerBase
     /// </remarks>
     /// <response code="200">Lista de pedidos paginados retornada com sucesso.</response>
     /// <response code="400">Parâmetros de entrada inválidos ou status fornecido inválido.</response>
-    [HttpGet("filtrar-status")]
+    [HttpGet("listar")]
     [SwaggerOperation(
-    Summary = "Lista pedidos por status com paginação",
+    Summary = "Lista pedidos paginados e com filtro opcional por status",
     Description = @"
         Retorna uma lista de pedidos com suporte a paginação, filtrando pelo status ('Aberto' ou 'Fechado').
 
         Regras de validação:
         - O número da página (`page`) deve ser maior ou igual a 1.
         - O tamanho da página (`pageSize`) deve ser maior ou igual a 1.
-        - O parâmetro `status` deve existir no banco de dados. Se omitido, retorna todos os pedidos.
+        - O parâmetro `status` é opcional. Se omitido, retorna todos os pedidos.
 
         Exemplo de requisição:
         GET /api/pedido/filtrar-status?page=1&pageSize=10&status=Aberto"

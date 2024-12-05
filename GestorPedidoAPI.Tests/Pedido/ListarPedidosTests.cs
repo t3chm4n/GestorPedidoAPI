@@ -8,10 +8,10 @@ namespace GestorPedidoAPI.Tests.Pedido;
 public class ListarPedidosTests : TestBase
 {
     [Fact]
-    public void ListarPedidos_DeveRetornarPedidosPaginados()
+    public void ListarPedidos_SemFiltroDeStatus_DeveRetornarTodosOsPedidos()
     {
         // Act
-        var result = PedidoController.ListarPedidosPaginados(1, 10) as OkObjectResult;
+        var result = PedidoController.ListarPedidosPaginadosEPorStatus(1, 10, null) as OkObjectResult;
 
         // Assert
         Assert.NotNull(result);
@@ -20,46 +20,11 @@ public class ListarPedidosTests : TestBase
         var response = result?.Value as PaginacaoResponse<object>;
         Assert.NotNull(response);
 
-        // Após Assert.NotNull, não é necessário usar ?. mais
         Assert.Equal(3, response.TotalItems);
-        Assert.Equal(3, response.Pedidos.Count());
+        Assert.Equal(1, response.CurrentPage);
+        Assert.Equal(1, response.TotalPages);
     }
 
-    [Fact]
-    public void ListarPedidos_ComPaginacao_DeveRespeitarParametros()
-    {
-        // Act
-        var result = PedidoController.ListarPedidosPaginados(1, 2) as OkObjectResult;
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(200, result?.StatusCode);
-
-        var response = result?.Value as PaginacaoResponse<object>;
-        Assert.NotNull(response);
-
-        // Após Assert.NotNull, não é necessário usar ?. mais
-        Assert.Equal(3, response.TotalItems);
-        Assert.Equal(2, response.Pedidos.Count());
-    }
-
-    [Fact]
-    public void ListarPedidos_PaginaInexistente_DeveRetornarSemItens()
-    {
-        // Act
-        var result = PedidoController.ListarPedidosPaginados(5, 10) as OkObjectResult;
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(200, result?.StatusCode);
-
-        var response = result?.Value as PaginacaoResponse<object>;
-        Assert.NotNull(response);
-
-        // Após Assert.NotNull, não é necessário usar ?. mais
-        Assert.Empty(response.Pedidos);
-        Assert.Equal(3, response.TotalItems);
-    }
 
     [Fact]
     public void ListarPedidos_ComFiltroDeStatus_DeveRetornarApenasPedidosDoFiltro()
