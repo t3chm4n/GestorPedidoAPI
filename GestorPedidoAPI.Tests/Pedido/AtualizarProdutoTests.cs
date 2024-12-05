@@ -43,8 +43,10 @@ public class AtualizarProdutoTests : TestBase
         var pedidoId = 1;
         var produtosDto = new List<ProdutoPedidoDto>
         {
-            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 5 },
-            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 2 } // Duplicado
+            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 1 },
+            new ProdutoPedidoDto { ProdutoId = 1, Quantidade = 1 }, // Duplicado
+            new ProdutoPedidoDto { ProdutoId = 3, Quantidade = 1 },
+            new ProdutoPedidoDto { ProdutoId = 3, Quantidade = 1 } // Duplicado
         };
 
         // Act
@@ -54,7 +56,7 @@ public class AtualizarProdutoTests : TestBase
         Assert.NotNull(result);
         Assert.Equal(400, result.StatusCode);
         Assert.NotNull(result.Value);
-        Assert.Equal("Produtos duplicados no request: 1.", result.Value.ToString());
+        Assert.Equal("Produtos com IDs {1, 3} duplicados no request.", result.Value.ToString());
     }
 
     [Fact]

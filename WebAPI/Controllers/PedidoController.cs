@@ -409,6 +409,7 @@ public class PedidoController : ControllerBase
     [SwaggerResponse(200, "Produtos atualizados com sucesso no pedido.")]
     [SwaggerResponse(400, "Dados inválidos ou erro de validação.")]
     [SwaggerResponse(404, "Pedido ou produto não encontrado.")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult AtualizarProduto(int pedidoId, [FromBody] List<ProdutoPedidoDto> produtosDto)
     {
         try
@@ -425,7 +426,8 @@ public class PedidoController : ControllerBase
 
             if (duplicados.Any())
             {
-                throw new PedidoException($"Produtos duplicados no request: {string.Join(", ", duplicados)}.");
+                var idsDuplicados = string.Join(", ", duplicados);
+                throw new PedidoException($"Produtos com IDs {{{idsDuplicados}}} duplicados no request.");
             }
 
             // Obtém o pedido e valida
