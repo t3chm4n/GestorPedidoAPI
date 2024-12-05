@@ -42,6 +42,14 @@ public class PedidoController : ControllerBase
         return produto;
     }
 
+    private void ValidarListaDeProdutos(List<ProdutoPedidoDto> produtosDto)
+    {
+        if (produtosDto == null || !produtosDto.Any())
+        {
+            throw new PedidoException("A lista de produtos não pode estar vazia.");
+        }
+    }
+
     /// <summary>
     /// Cria um novo pedido com uma lista inicial de produtos.
     /// </summary>
@@ -84,63 +92,58 @@ public class PedidoController : ControllerBase
 
     public IActionResult CriarPedido([FromBody] CriarPedidoDto criarPedidoDto)
     {
-        // Verifica se a lista de produtos é nula ou vazia
-        if (criarPedidoDto.Produtos == null || !criarPedidoDto.Produtos.Any())
+        try
         {
-            return BadRequest("Um pedido deve conter pelo menos um produto.");
-        }
+            ValidarListaDeProdutos(criarPedidoDto.Produtos);
 
-        // Cria o pedido com status inicial "Aberto"
-        var pedido = new PedidoEntity
-        {
-            Status = PedidoStatus.Aberto.ToString()
-        };
-        _context.Pedidos.Add(pedido);
-
-        // Lista auxiliar para validar produtos duplicados no pedido
-        var produtosNoPedido = new HashSet<int>();
-
-        // Valida e adiciona cada produto ao pedido
-        foreach (var produtoDto in criarPedidoDto.Produtos)
-        {
-            // Verifica se o produto já foi adicionado ao pedido
-            if (!produtosNoPedido.Add(produtoDto.ProdutoId))
+            // Cria o pedido com status inicial "Aberto"
+            var pedido = new PedidoEntity
             {
-                return BadRequest($"O produto com ID {produtoDto.ProdutoId} foi adicionado mais de uma vez ao pedido.");
-            }
-
-            // Verifica se o produto existe no banco de dados
-            ProdutoEntity produto;
-            try
-            {
-                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
-            }
-            catch (PedidoException ex)
-            {
-                return NotFound(ex.Message);
-            }
-
-            // Valida se a quantidade é maior que zero
-            if (produtoDto.Quantidade <= 0)
-            {
-                return BadRequest($"Quantidade inválida para o produto com ID {produtoDto.ProdutoId}. Deve ser maior que zero.");
-            }
-
-            // Adiciona o produto ao pedido
-            var pedidoProduto = new PedidoProduto
-            {
-                PedidoId = pedido.Id,
-                ProdutoId = produto.Id,
-                Quantidade = produtoDto.Quantidade
+                Status = PedidoStatus.Aberto.ToString()
             };
-            _context.PedidoProdutos.Add(pedidoProduto);
+            _context.Pedidos.Add(pedido);
+
+            // Lista auxiliar para validar produtos duplicados no pedido
+            var produtosNoPedido = new HashSet<int>();
+
+            // Valida e adiciona cada produto ao pedido
+            foreach (var produtoDto in criarPedidoDto.Produtos)
+            {
+                if (!produtosNoPedido.Add(produtoDto.ProdutoId))
+                {
+                    throw new PedidoException($"O produto com ID {produtoDto.ProdutoId} foi adicionado mais de uma vez ao pedido.");
+                }
+
+                var produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+
+                if (produtoDto.Quantidade <= 0)
+                {
+                    throw new PedidoException($"Quantidade inválida para o produto com ID {produtoDto.ProdutoId}. Deve ser maior que zero.");
+                }
+
+                var pedidoProduto = new PedidoProduto
+                {
+                    PedidoId = pedido.Id,
+                    ProdutoId = produto.Id,
+                    Quantidade = produtoDto.Quantidade
+                };
+                _context.PedidoProdutos.Add(pedidoProduto);
+            }
+
+            _context.SaveChanges();
+
+            return Ok($"Pedido com ID {pedido.Id} criado com sucesso.");
         }
-
-        // Salva as alterações no banco de dados
-        _context.SaveChanges();
-
-        return Ok($"Pedido com ID {pedido.Id} criado com sucesso.");
+        catch (PedidoException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
+
 
     /// <summary>
     /// Adiciona produtos a um pedido existente.
@@ -200,42 +203,45 @@ public class PedidoController : ControllerBase
 
     public IActionResult AdicionarProduto(int pedidoId, [FromBody] List<ProdutoPedidoDto> produtosDto)
     {
-        if (produtosDto == null || !produtosDto.Any())
-            return BadRequest("A lista de produtos não pode estar vazia.");
-
-        PedidoEntity pedido;
         try
         {
-            pedido = ObterPedidoComValidacao(pedidoId);
-        }
-        catch (PedidoException ex)
-        {
-            return NotFound(ex.Message);
-        }
+            // Valida a lista de produtos
+            ValidarListaDeProdutos(produtosDto);
 
-        foreach (var produtoDto in produtosDto)
-        {
-            ProdutoEntity produto;
-            try
+            // Obtém o pedido e valida se pode ser modificado
+            var pedido = ObterPedidoComValidacao(pedidoId);
+            if (pedido.Status == PedidoStatus.Fechado.ToString())
             {
-                produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
-            }
-            catch (PedidoException ex)
-            {
-                return NotFound(ex.Message);
+                throw new PedidoException($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
             }
 
-            // Verifique se o produto já está associado ao pedido
-            var pedidoProdutoExistente = _context.PedidoProdutos
-                .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoDto.ProdutoId);
+            var produtosNoPedido = new HashSet<int>();
 
-            if (pedidoProdutoExistente != null)
+            // Valida e adiciona cada produto
+            foreach (var produtoDto in produtosDto)
             {
-                return BadRequest($"Produto com ID {produtoDto.ProdutoId} já existe no pedido e não pode ser duplicado.");
-            }
-            else
-            {
-                // Adicione uma nova associação se não existir
+                if (!produtosNoPedido.Add(produtoDto.ProdutoId))
+                {
+                    throw new PedidoException($"O produto com ID {produtoDto.ProdutoId} foi adicionado mais de uma vez no mesmo request.");
+                }
+
+                var produto = ObterProdutoComValidacao(produtoDto.ProdutoId);
+
+                if (produtoDto.Quantidade <= 0)
+                {
+                    throw new PedidoException($"Quantidade inválida para o produto com ID {produtoDto.ProdutoId}. Deve ser maior que zero.");
+                }
+
+                // Verifica se o produto já está associado ao pedido
+                var pedidoProdutoExistente = _context.PedidoProdutos
+                    .FirstOrDefault(pp => pp.PedidoId == pedidoId && pp.ProdutoId == produtoDto.ProdutoId);
+
+                if (pedidoProdutoExistente != null)
+                {
+                    throw new PedidoException($"Produto com ID {produtoDto.ProdutoId} já existe no pedido e não pode ser duplicado.");
+                }
+
+                // Adiciona o novo produto ao pedido
                 var pedidoProduto = new PedidoProduto
                 {
                     PedidoId = pedidoId,
@@ -245,17 +251,19 @@ public class PedidoController : ControllerBase
 
                 _context.PedidoProdutos.Add(pedidoProduto);
             }
+
+            _context.SaveChanges();
+            return Ok($"Produtos adicionados com sucesso ao pedido {pedidoId}.");
         }
-
-        if (pedido.Status == PedidoStatus.Fechado.ToString())
-            return BadRequest($"Pedido com ID {pedidoId} está fechado e não pode ser modificado.");
-
-        _context.SaveChanges();
-
-        return Ok($"Produtos adicionados com sucesso ao pedido {pedidoId}.");
+        catch (PedidoException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro interno: {ex.Message}");
+        }
     }
-
-
 
     /// <summary>
     /// Remove completamente um produto de um pedido.

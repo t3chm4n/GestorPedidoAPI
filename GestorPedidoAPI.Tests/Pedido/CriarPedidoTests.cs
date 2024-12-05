@@ -41,7 +41,7 @@ public class CriarPedidoTests : TestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(400, result?.StatusCode);
-        Assert.Equal("Um pedido deve conter pelo menos um produto.", result?.Value);
+        Assert.Equal("A lista de produtos não pode estar vazia.", result?.Value);
     }
 
     [Fact]
@@ -57,11 +57,11 @@ public class CriarPedidoTests : TestBase
         };
 
         // Act
-        var result = PedidoController.CriarPedido(criarPedidoDto) as NotFoundObjectResult;
+        var result = PedidoController.CriarPedido(criarPedidoDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(404, result?.StatusCode);
+        Assert.Equal(400, result?.StatusCode);
         Assert.Equal("Produto com ID 99 não encontrado.", result?.Value);
     }
 

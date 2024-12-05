@@ -78,11 +78,11 @@ public class AdicionarProdutoTests : TestBase
         };
 
         // Act
-        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(404, result.StatusCode);
+        Assert.Equal(400, result.StatusCode);
         Assert.Equal("Produto com ID 99 não encontrado.", result.Value);
     }
 
@@ -97,11 +97,11 @@ public class AdicionarProdutoTests : TestBase
         };
 
         // Act
-        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as NotFoundObjectResult;
+        var result = PedidoController.AdicionarProduto(pedidoId, produtosDto) as BadRequestObjectResult;
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(404, result.StatusCode);
+        Assert.Equal(400, result.StatusCode);
         Assert.Equal($"Pedido com ID {pedidoId} não encontrado.", result.Value);
     }
 
