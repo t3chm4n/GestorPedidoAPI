@@ -89,7 +89,7 @@ public class PedidoController : ControllerBase
     ")]
     [SwaggerResponse(201, "Pedido criado com sucesso.", typeof(PedidoDto))]
     [SwaggerResponse(400, "Dados inválidos ou erro de validação.")]
-
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult CriarPedido([FromBody] CriarPedidoDto criarPedidoDto)
     {
         try
@@ -199,8 +199,7 @@ public class PedidoController : ControllerBase
     )]
     [SwaggerResponse(200, "Produtos adicionados com sucesso ao pedido.")]
     [SwaggerResponse(400, "Dados inválidos ou erro de validação.")]
-    [SwaggerResponse(404, "Pedido ou produto não encontrado.")]
-
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult AdicionarProduto(int pedidoId, [FromBody] List<ProdutoPedidoDto> produtosDto)
     {
         try
@@ -300,9 +299,8 @@ public class PedidoController : ControllerBase
             "
     )]
     [SwaggerResponse(200, "Produto removido com sucesso do pedido.")]
-    [SwaggerResponse(404, "Pedido ou produto não encontrado.")]
     [SwaggerResponse(400, "Pedido está fechado ou tentativa de remoção deixaria o pedido sem produtos.")]
-
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult RemoverProduto(int pedidoId, int produtoId)
     {
         try
@@ -408,7 +406,6 @@ public class PedidoController : ControllerBase
     )]
     [SwaggerResponse(200, "Produtos atualizados com sucesso no pedido.")]
     [SwaggerResponse(400, "Dados inválidos ou erro de validação.")]
-    [SwaggerResponse(404, "Pedido ou produto não encontrado.")]
     [SwaggerResponse(500, "Erro interno.")]
     public IActionResult AtualizarProduto(int pedidoId, [FromBody] List<ProdutoPedidoDto> produtosDto)
     {
@@ -478,7 +475,6 @@ public class PedidoController : ControllerBase
         }
     }
 
-
     /// <summary>
     /// Fecha um pedido existente.
     /// </summary>
@@ -520,7 +516,7 @@ public class PedidoController : ControllerBase
     )]
     [SwaggerResponse(200, "Pedido fechado com sucesso.")]
     [SwaggerResponse(400, "Pedido sem produtos ou já fechado.")]
-    [SwaggerResponse(404, "Pedido não encontrado.")]
+    [SwaggerResponse(500, "Erro interno.")]
     public IActionResult FecharPedido(int pedidoId)
     {
         try
