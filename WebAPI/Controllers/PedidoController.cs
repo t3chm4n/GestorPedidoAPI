@@ -568,10 +568,8 @@ public class PedidoController : ControllerBase
         Reabre um pedido com status 'Fechado', validando as seguintes condições:
         - O pedido deve existir.
         - O pedido deve estar com o status 'Fechado'.
-        - Não é possível reabrir pedidos já abertos.
-        ",
-    Tags = new[] { "Pedidos" }
-)]
+        "
+    )]
     [SwaggerResponse(200, "Pedido reaberto com sucesso.")]
     [SwaggerResponse(400, "Pedido não encontrado ou não está fechado")]
     [SwaggerResponse(500, "Erro interno.")]
